@@ -16,6 +16,7 @@ Context: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) · Status: [PROGRESS.md](PROGR
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic + OR-Tools CP-SAT. Run: `python manage.py migrate | seed | serve`
 - Database: **Neon PostgreSQL** (hosted, `DATABASE_URL` in `.env`, sslmode=require) · local PostgreSQL via Docker for offline/on-prem · SQLite only for quick dev/tests. **No Supabase, ever.**
 - `frontend/` — React + TS + Vite + Tailwind v4 + TanStack Query + Recharts + lucide-react.
+- Hosting (free tiers only, never upgrade without owner approval): Vercel (frontend/vercel.json) + Render Free (render.yaml, Docker, 512 MB/0.1 CPU) + Neon + UptimeRobot on `GET /health`.
 - Docker: `docker compose up -d` = external DB (Neon) · `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` = bundled PostgreSQL (offline/demos).
 
 ## Rules
@@ -24,4 +25,5 @@ Context: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) · Status: [PROGRESS.md](PROGR
 - Advisory only: never imply airworthiness/flight clearance. Prediction, recommendation, approval are separate entities.
 - Fictional aircraft IDs only. C-MAPSS = simulated commercial turbofan data, not military.
 - Git: use the configured identity as-is. **No AI co-author/attribution lines in commits. Never add AI bots as collaborators.** No force-push. Never commit secrets, `.env`, raw data, venvs.
-- Run tests before claiming done: `.venv/Scripts/python -m pytest` (root) and `cd frontend && npm test && npm run build`.
+- Run tests before claiming done: `.venv/Scripts/python -m pytest`, `ruff check .`, `mypy backend/app ml manage.py` (root); `cd frontend && npm test && npm run lint && npm run build`; Playwright `npm run e2e` against a running stack.
+- Train models locally only (`python manage.py train`); the server loads `ml/artifacts/rul_model.joblib` (native LightGBM Booster, no scikit-learn at runtime).

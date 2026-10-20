@@ -1,21 +1,20 @@
-import { createContext, useCallback, useContext, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { ApiError, api, hasToken, setToken, setUnauthorizedHandler, type User } from './api'
-import { Button, Field, inputCls } from './ui'
+import { ApiError, api, setToken, setUnauthorizedHandler, type User } from './api'
+import { Ctx } from './auth-context'
+import { inputCls } from './format'
+import { Button, Field } from './ui'
 
-interface AuthCtx { user: User | null; can: (perm: string) => boolean; logout: () => void }
-const Ctx = createContext<AuthCtx>({ user: null, can: () => false, logout: () => {} })
-export const useAuth = () => useContext(Ctx)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [checking, setChecking] = useState(hasToken())
+  const [checking, setChecking] = useState(true)
   const qc = useQueryClient()
   const logout = useCallback(() => { setToken(null); setUser(null); qc.clear() }, [qc])
 
   useEffect(() => {
     setUnauthorizedHandler(() => setUser(null))
-    if (!hasToken()) return
+    // Always ask: a stored token, or (OIDC mode) an identity injected by the organisation's SSO proxy.
     api.get<User>('/auth/me').then(setUser).catch(() => setToken(null)).finally(() => setChecking(false))
   }, [])
 

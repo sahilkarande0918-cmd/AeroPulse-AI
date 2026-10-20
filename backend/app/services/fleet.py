@@ -1,7 +1,7 @@
 """Glue between persistence, TrustTwin assessment, recommendations and the planner."""
-import hashlib
-import json
+from collections.abc import Collection, Sequence
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
@@ -19,7 +19,7 @@ HORIZON_HOURS = 14 * 24
 HOURS_PER_CYCLE = 12                  # synthetic utilisation used to timestamp replayed cycles
 
 # Prototype action catalogue (fictional part numbers; real procedures must come from approved manuals).
-ACTIONS = {
+ACTIONS: dict[str, dict[str, Any]] = {
     "replace": {"action": "Plan engine hot-section module replacement", "task_type": "replacement",
                 "skill": "powerplant", "duration": 8, "parts": [{"part_number": "APX-HPT-MOD-KIT", "qty": 1}]},
     "inspect": {"action": "Borescope inspection of HPC/HPT stages", "task_type": "inspection",
@@ -144,8 +144,8 @@ def tech_blocked(t: Technician, t0: datetime, horizon: int) -> list[tuple[int, i
     return sorted((max(0, a), min(horizon, b)) for a, b in blocked if b > 0 and a < horizon and b > a)
 
 
-def build_problem(db: Session, now: datetime | None = None, *, extra_tasks: list[dict] = (),
-                  unavailable_techs: set[str] = frozenset(), part_overrides: dict | None = None,
+def build_problem(db: Session, now: datetime | None = None, *, extra_tasks: Sequence[dict] = (),
+                  unavailable_techs: Collection[str] = frozenset(), part_overrides: dict | None = None,
                   weights: dict | None = None) -> tuple[planner.Problem, datetime, dict]:
     t0 = horizon_start(now)
     H = HORIZON_HOURS
@@ -180,6 +180,3 @@ def build_problem(db: Session, now: datetime | None = None, *, extra_tasks: list
     return planner.Problem(H, tasks, techs, stocks, weights or {}), t0, meta
 
 
-def problem_hash(p: planner.Problem) -> str:
-    from dataclasses import asdict
-    return hashlib.sha256(json.dumps(asdict(p), sort_keys=True, default=str).encode()).hexdigest()

@@ -9,9 +9,12 @@ COPY ml/__init__.py ml/data.py ml/features.py ml/inference.py ml/
 COPY ml/artifacts ml/artifacts
 COPY data/samples data/samples
 COPY backend backend
-ENV PYTHONPATH=/srv:/srv/backend PYTHONUNBUFFERED=1 APP_ENV=production
+COPY manage.py manage.py
+# One math thread: under a 0.1-CPU quota extra OpenMP threads only burn the budget. Fewer malloc arenas = less RSS.
+ENV PYTHONPATH=/srv:/srv/backend PYTHONUNBUFFERED=1 APP_ENV=production OMP_NUM_THREADS=1 MALLOC_ARENA_MAX=2
 USER aeropulse
 EXPOSE 8000
-HEALTHCHECK --interval=15s --timeout=5s --retries=10 CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/api/health')"
+HEALTHCHECK --interval=15s --timeout=5s --retries=10 CMD python -c "import os,urllib.request;urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/health')"
 WORKDIR /srv/backend
-CMD ["sh", "-c", "alembic upgrade head && python -m app.seed && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers"]
+# One process for migrate + seed + serve: on a 0.1-CPU host each extra interpreter re-pays ~30 s of imports.
+CMD ["python", "/srv/manage.py", "start"]

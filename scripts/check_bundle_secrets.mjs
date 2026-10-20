@@ -8,7 +8,8 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 const dist = join(root, 'frontend', 'dist')
 if (!existsSync(dist)) { console.error('frontend/dist missing; build first'); process.exit(2) }
 
-const SECRET_KEYS = ['JWT_SECRET_KEY', 'DEMO_PASSWORD', 'POSTGRES_PASSWORD', 'GEMINI_API_KEY', 'DATABASE_URL']
+const SECRET_KEYS = ['JWT_SECRET_KEY', 'DEMO_PASSWORD', 'POSTGRES_PASSWORD', 'GEMINI_API_KEY', 'DATABASE_URL',
+  'RENDER_API_KEY', 'VERCEL_TOKEN', 'UPTIMEROBOT_API_KEY', 'PROD_DEMO_PASSWORD']
 const needles = [...SECRET_KEYS]
 const envFile = join(root, '.env')
 if (existsSync(envFile)) {

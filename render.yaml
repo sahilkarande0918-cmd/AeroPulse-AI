@@ -1,0 +1,28 @@
+# Render Blueprint — FastAPI backend on the FREE plan (512 MB RAM, 0.1 CPU). Never change `plan` without approval.
+# Region "ohio" = same AWS region (us-east-2) as the Neon database, so each query is a few ms, not ~280 ms.
+# Secrets marked `sync: false` are entered in the Render dashboard (or via the Render API), never committed.
+services:
+  - type: web
+    name: aeropulse-api
+    runtime: docker
+    plan: free
+    region: ohio
+    repo: https://github.com/sahilkarande0918-cmd/AeroPulse-AI
+    branch: main
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health          # liveness only: never touches Neon, so pings don't keep the database awake
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL             # Neon pooled connection string (…-pooler…neon.tech/…?sslmode=require)
+        sync: false
+      - key: DEMO_PASSWORD            # password for the seeded demo users on the public deployment
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS             # the Vercel URL; the SPA reaches the API through a same-origin rewrite anyway
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: LLM_ENABLED
+        value: "false"

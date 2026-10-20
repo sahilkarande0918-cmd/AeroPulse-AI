@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
     max_upload_bytes: int = 5_000_000
+    # Organisation SSO: AUTH_MODE=oidc validates IdP-signed bearer tokens instead of local passwords.
+    auth_mode: str = "local"                 # local | oidc
+    oidc_issuer: str = ""
+    oidc_audience: str = ""
+    oidc_jwks_url: str = ""
+    oidc_username_claim: str = "preferred_username"
+    oidc_groups_claim: str = "groups"
+    oidc_role_map: str = ""                  # "idp-group=role,other-group=role"
 
     @property
     def is_production(self) -> bool:

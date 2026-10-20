@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, Upload } from 'lucide-react'
 import { ApiError, api, download, type Page } from '../api'
-import { useAuth } from '../auth'
-import { Button, Empty, ErrorState, Field, Loading, PageHeader, Panel, Table, Tag, fmtTime, inputCls } from '../ui'
+import { useAuth } from '../auth-context'
+import { fmtTime, inputCls } from '../format'
+import { Button, Empty, ErrorState, Field, Loading, PageHeader, Panel, Table, Tag } from '../ui'
 
 interface Status {
   app_env: string; mode: string; database_dialect: string; offline_capable: boolean; external_calls: string[]; llm_enabled: boolean

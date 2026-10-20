@@ -1,0 +1,171 @@
+{
+  "protocol": "Evaluation-only benchmark across all four C-MAPSS subsets (the deployed model remains FD001).",
+  "config": "lgbm_a, rul_cap 125, alpha 0.10, seed 42",
+  "note": "Evaluation only; the application serves the FD001 model trained by ml.train.",
+  "results": [
+    {
+      "subset": "FD001",
+      "description": "1 condition, 1 fault mode",
+      "condition_normalised": false,
+      "train_engines": 100,
+      "test_engines": 100,
+      "sensors_used": [
+        "s2",
+        "s3",
+        "s4",
+        "s7",
+        "s9",
+        "s11",
+        "s12",
+        "s14",
+        "s15",
+        "s17",
+        "s20",
+        "s21"
+      ],
+      "lightgbm": {
+        "mae": 11.741291497363672,
+        "rmse": 16.063009198247006,
+        "bias": -0.07821460537100691,
+        "phm08_score": 456.85027758875947,
+        "n": 100
+      },
+      "ridge": {
+        "mae": 17.124159510733342,
+        "rmse": 21.643857991826373,
+        "bias": 1.7166923903182294,
+        "phm08_score": 1081.4032863365653,
+        "n": 100
+      },
+      "interval_coverage_capped_truth": 0.89,
+      "mean_interval_width": 43.33460261624299,
+      "seconds": 2.6
+    },
+    {
+      "subset": "FD002",
+      "description": "6 conditions, 1 fault mode",
+      "condition_normalised": true,
+      "train_engines": 260,
+      "test_engines": 259,
+      "sensors_used": [
+        "s2",
+        "s3",
+        "s4",
+        "s6",
+        "s7",
+        "s8",
+        "s9",
+        "s10",
+        "s11",
+        "s12",
+        "s13",
+        "s14",
+        "s15",
+        "s16",
+        "s17",
+        "s20",
+        "s21"
+      ],
+      "lightgbm": {
+        "mae": 17.882017874594226,
+        "rmse": 26.398438735752425,
+        "bias": -8.172732630857267,
+        "phm08_score": 8642.751771333027,
+        "n": 259
+      },
+      "ridge": {
+        "mae": 21.878121656894006,
+        "rmse": 30.02455392195665,
+        "bias": -7.491073168535209,
+        "phm08_score": 14020.08323959773,
+        "n": 259
+      },
+      "interval_coverage_capped_truth": 0.918918918918919,
+      "mean_interval_width": 47.34291280481591,
+      "seconds": 7.4
+    },
+    {
+      "subset": "FD003",
+      "description": "1 condition, 2 fault modes",
+      "condition_normalised": false,
+      "train_engines": 100,
+      "test_engines": 100,
+      "sensors_used": [
+        "s2",
+        "s3",
+        "s4",
+        "s6",
+        "s7",
+        "s9",
+        "s10",
+        "s11",
+        "s12",
+        "s14",
+        "s15",
+        "s17",
+        "s20",
+        "s21"
+      ],
+      "lightgbm": {
+        "mae": 12.610903856340146,
+        "rmse": 17.054309295313224,
+        "bias": 2.68729480507203,
+        "phm08_score": 672.3158252537075,
+        "n": 100
+      },
+      "ridge": {
+        "mae": 16.51943851151283,
+        "rmse": 21.109482388465548,
+        "bias": 5.125927993412017,
+        "phm08_score": 1409.2591039044896,
+        "n": 100
+      },
+      "interval_coverage_capped_truth": 0.85,
+      "mean_interval_width": 47.774612890060105,
+      "seconds": 3.0
+    },
+    {
+      "subset": "FD004",
+      "description": "6 conditions, 2 fault modes",
+      "condition_normalised": true,
+      "train_engines": 249,
+      "test_engines": 248,
+      "sensors_used": [
+        "s2",
+        "s3",
+        "s4",
+        "s6",
+        "s7",
+        "s8",
+        "s9",
+        "s10",
+        "s11",
+        "s12",
+        "s13",
+        "s14",
+        "s15",
+        "s16",
+        "s17",
+        "s20",
+        "s21"
+      ],
+      "lightgbm": {
+        "mae": 19.521439196305465,
+        "rmse": 26.989523017624443,
+        "bias": -8.042771616144366,
+        "phm08_score": 4877.078162904273,
+        "n": 248
+      },
+      "ridge": {
+        "mae": 24.759086873896468,
+        "rmse": 31.47832157759884,
+        "bias": -5.550154331914459,
+        "phm08_score": 8088.189115762356,
+        "n": 248
+      },
+      "interval_coverage_capped_truth": 0.8870967741935484,
+      "mean_interval_width": 45.20328016446485,
+      "seconds": 7.6
+    }
+  ]
+}

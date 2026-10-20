@@ -55,7 +55,7 @@ def trajectory_table() -> dict[int, pd.DataFrame]:
         X = model.features_for(g)
         pred = model.predict(X)
         lo = np.array([model.interval(p)[0] for p in pred])
-        out[int(unit)] = pd.DataFrame({"cycle": g["cycle"].to_numpy(), "pred": pred, "lo": lo,
+        out[int(str(unit))] = pd.DataFrame({"cycle": g["cycle"].to_numpy(), "pred": pred, "lo": lo,
                                        "true_rul": g["cycle"].max() - g["cycle"].to_numpy()})
     return out
 
@@ -74,7 +74,7 @@ def _events(p: SimParams, units: list[int], lengths: dict[int, int]):
         queue.append(seq)
     dropouts = rng.random((p.days, n_eng)) < p.dropout_prob
     absences = (rng.random((p.days, p.crews)) < p.absence_prob).sum(axis=1)
-    deliveries = {}
+    deliveries: dict[int, int] = {}
     for d in range(p.resupply_every_days, p.days, p.resupply_every_days):
         slip = p.part_delay_days if rng.random() < p.part_delay_prob else 0
         if d + slip < p.days:

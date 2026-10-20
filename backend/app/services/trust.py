@@ -8,6 +8,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+from ml.features import SLOPE_WINDOW
 from ml.inference import RulModel
 
 SEVERITY = {"pass": 0, "warn": 1, "fail": 2}
@@ -120,7 +121,8 @@ def assess(readings: list[dict], now: datetime, model: RulModel, th: dict) -> di
     severity = max(SEVERITY[c["status"]] for c in checks)
     if severity < 2:
         df = filled.assign(unit=0, cycle=[r["cycle"] for r in readings])
-        X = model.features_for(df).tail(1)
+        # The last row's features only depend on the last SLOPE_WINDOW readings (causal windows).
+        X = model.features_for(df.tail(SLOPE_WINDOW)).tail(1)
         fs = model.feature_stats
         out = [f for f in model.features if not fs[f]["p005"] <= X[f].iloc[0] <= fs[f]["p995"]]
         frac = len(out) / len(model.features)

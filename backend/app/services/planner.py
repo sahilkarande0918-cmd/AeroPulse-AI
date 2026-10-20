@@ -10,6 +10,10 @@ Time unit: whole hours from horizon start. Hard constraints (never relaxed):
 Tasks that cannot be placed are reported as unscheduled with a diagnosed reason.
 Objective (configurable weights): priority-weighted lateness + unscheduled penalty + completion time.
 """
+import copy
+import hashlib
+import json
+from collections import OrderedDict
 from dataclasses import asdict, dataclass, field
 
 from ortools.sat.python import cp_model
@@ -123,7 +127,23 @@ def _earliest_free(busy: list[tuple[int, int]], start: int, dur: int, horizon: i
     return t if t + dur <= horizon else None
 
 
-def solve_cpsat(p: Problem, time_limit_s: float = 10.0) -> dict:
+def problem_hash(p: Problem) -> str:
+    return hashlib.sha256(json.dumps(asdict(p), sort_keys=True, default=str).encode()).hexdigest()
+
+
+_PLANS: OrderedDict[str, dict] = OrderedDict()   # CP-SAT is deterministic here, so identical inputs reuse the plan
+
+
+def solve_cpsat(p: Problem, deterministic_limit: float = 10.0) -> dict:
+    key = f"{problem_hash(p)}:{deterministic_limit}"
+    if key not in _PLANS:
+        _PLANS[key] = _solve_cpsat(p, deterministic_limit)
+        if len(_PLANS) > 64:
+            _PLANS.popitem(last=False)
+    return copy.deepcopy(_PLANS[key])
+
+
+def _solve_cpsat(p: Problem, deterministic_limit: float) -> dict:
     static = diagnose(p)
     w = {**DEFAULT_WEIGHTS, **p.weights}
     m = cp_model.CpModel()
@@ -164,7 +184,8 @@ def solve_cpsat(p: Problem, time_limit_s: float = 10.0) -> dict:
         users = [t for t in p.tasks if pn in t.parts]
         if not users:
             continue
-        times, deltas, actives = [0], [stock.on_hand], [m.new_constant(1)]
+        times: list = [0]
+        deltas, actives = [stock.on_hand], [m.new_constant(1)]
         for at, q in stock.arrivals:
             times.append(at); deltas.append(q); actives.append(m.new_constant(1))
         for t in users:
@@ -179,7 +200,9 @@ def solve_cpsat(p: Problem, time_limit_s: float = 10.0) -> dict:
                                                    + w["unscheduled"] * (1 - present[t.id])
                                                    + w["completion"] * end[t.id]) for t in p.tasks))
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = time_limit_s
+    # Deterministic-time limit: the same plan on a fast laptop and on a throttled 0.1-CPU host.
+    solver.parameters.max_deterministic_time = deterministic_limit
+    solver.parameters.max_time_in_seconds = 60   # wall-clock safety net only
     solver.parameters.num_workers = 1          # deterministic results for reproducible scenarios
     solver.parameters.random_seed = 7
     status = solver.solve(m)
@@ -222,7 +245,7 @@ def solve_greedy(p: Problem) -> dict:
             for x in p.techs:
                 if t.skill not in x.skills:
                     continue
-                s = ready
+                s: int | None = ready
                 while s is not None:
                     s = _earliest_free(busy[x.id] + ac_busy.get(t.aircraft, []), s, t.duration, p.horizon)
                     if s is None:

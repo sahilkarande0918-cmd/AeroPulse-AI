@@ -59,6 +59,12 @@ async def unhandled(_: Request, exc: Exception):
     return _error(500, "internal_error", "Internal server error")
 
 
+@app.get("/health", include_in_schema=False)
+def liveness():
+    """Uptime-monitor ping: no database or model access, so pings never wake or bill the database."""
+    return {"status": "ok"}
+
+
 for r in (system.router, auth.router, fleet.router, maintenance.router, parts.router, trusttwin.router,
           ingestion.router, reports.router):
     app.include_router(r, prefix="/api")

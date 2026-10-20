@@ -19,3 +19,10 @@ ignore = ["S101", "S311", "B008", "B905", "E702", "S105", "S106"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "ml", "tests"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+explicit_package_bases = true
+mypy_path = "backend"
+check_untyped_defs = true

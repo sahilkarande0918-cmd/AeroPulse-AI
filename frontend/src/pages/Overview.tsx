@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, type MaintState, type Part, type Prediction, type TrustState } from '../api'
-import { ErrorState, Loading, MaintBadge, PageHeader, Panel, RulGauge, SimLabel, Stat, Table, TrustBadge, ago, fmt, fmtTime } from '../ui'
+import { ago, fmt, fmtTime } from '../format'
+import { ErrorState, Loading, MaintBadge, PageHeader, Panel, RulGauge, SimLabel, Stat, Table, TrustBadge } from '../ui'
 
 interface Overview {
   aircraft_total: number; engines_total: number

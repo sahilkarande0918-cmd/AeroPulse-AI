@@ -72,7 +72,7 @@ More diagrams (ML pipeline, TrustTwin flow, optimisation, data integration): [do
 | Backend | FastAPI, Pydantic, SQLAlchemy 2, Alembic, psycopg 3, OR-Tools CP-SAT, bcrypt + JWT |
 | Database | **Neon PostgreSQL** (hosted) · PostgreSQL 16 in Docker (offline/on-prem) · SQLite (tests only) |
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router, Recharts, lucide-react, self-hosted IBM Plex |
-| Deployment | Docker Compose (postgres + backend + nginx frontend) |
+| Deployment | Docker Compose (postgres + backend + nginx frontend) · free hosting: Vercel (SPA) + Render (API) + Neon + UptimeRobot |
 
 ## Measured results (real, reproducible)
 
@@ -90,6 +90,8 @@ Protocol: engines split by unit (65 fit / 15 conformal calibration / 20 hold-out
   truth; **0.899** on the 20 hold-out engines (all cycles), 0.964 when true RUL ≤ 50. Mean interval width 43.5 cycles.
 * Hold-out engines: RMSE 14.70 overall, **8.23 when true RUL ≤ 50** cycles.
 * Engine-grouped CV RMSE: LightGBM 14.91 · Ridge 20.73 · mean 41.69.
+* All four C-MAPSS subsets (evaluation-only benchmark, same protocol): LightGBM RMSE 16.1 / 26.4 / 17.1 / 27.0 on
+  FD001–FD004, ahead of Ridge on each; the multi-condition subsets remain hard ([docs/evaluation.md](docs/evaluation.md)).
 
 Simulated digital twin, default settings, seed 2026 (120 days, 10 aircraft × 2 engines) —
 *Results from a simulated scenario, not demonstrated real-world fleet improvements:*
@@ -141,6 +143,23 @@ npm --prefix frontend run dev
 Open http://localhost:5173 and sign in as `officer` (or `admin`, `technician`, `analyst`) with your `DEMO_PASSWORD`.
 API docs (OpenAPI): http://localhost:8000/docs.
 
+## Screenshots
+
+Captured by the Playwright suite against the running app (`E2E_SCREENSHOTS=../docs/screenshots npm --prefix frontend run e2e`).
+
+| Command overview | Aircraft health + engine schematic |
+|---|---|
+| ![Command overview](docs/screenshots/01-command-overview.png) | ![Aircraft health](docs/screenshots/02-aircraft-health.png) |
+| **TrustTwin scenario** | **Maintenance planner** |
+| ![TrustTwin](docs/screenshots/03-trusttwin-scenario.png) | ![Planner](docs/screenshots/04-maintenance-planner.png) |
+
+## Hosted demo (free tiers)
+
+Frontend on **Vercel**, FastAPI on **Render Free** (Docker, Ohio), database on **Neon** (us-east-2), kept warm by an
+**UptimeRobot** 5-minute ping of `GET /health` (which never touches the database). Blueprint: `render.yaml`; Vercel
+config: `frontend/vercel.json` (rewrites `/api/*` to Render). Measured resource use and latency on Render-equivalent
+limits, setup steps and the trade-offs of 0.1 CPU: [docs/deployment.md](docs/deployment.md#free-tier-hosting).
+
 ## Docker
 
 ```bash
@@ -163,14 +182,17 @@ Console: http://localhost:8080. Details, backups and migrations: [docs/deploymen
 | `APP_ENV` | `development` or `production` |
 | `CORS_ORIGINS` | Comma-separated allowed browser origins |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL` | Optional explainer; **off by default**, core platform never needs it |
+| `AUTH_MODE`, `OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, `OIDC_ROLE_MAP`, … | Organisation SSO (`AUTH_MODE=oidc`), see docs/security.md |
 | `MODEL_PATH`, `DATA_DIRECTORY`, `LOG_LEVEL`, `JWT_EXPIRE_MINUTES`, `MAX_UPLOAD_BYTES` | Optional overrides |
 
 ## Tests
 
 ```bash
-.venv/Scripts/python -m pytest -q          # 65 tests: ML, TrustTwin, planner, RBAC, approvals, simulation, ingestion, persistence
+.venv/Scripts/python -m pytest -q          # ML, TrustTwin, planner, RBAC, approvals, simulation, ingestion, persistence, OIDC
 .venv/Scripts/ruff check .
-npm --prefix frontend test                 # Vitest: API error handling, withheld-prediction UI
+.venv/Scripts/python -m mypy backend/app ml manage.py
+npm --prefix frontend test                 # Vitest: API errors, withheld prediction, schematic, copilot visibility
+npm --prefix frontend run e2e              # Playwright (local Edge) against http://localhost:8080 or E2E_BASE_URL
 npm --prefix frontend run build            # tsc + production build
 npm --prefix frontend run check:secrets    # fails if any server secret appears in the bundle
 ```
@@ -190,7 +212,8 @@ Settings & data connections. Demo script: [docs/demo-guide.md](docs/demo-guide.m
 Development-stage security, **not** accredited for classified use: bcrypt passwords, JWT, backend-enforced roles
 (admin, maintenance officer, technician, read-only analyst), restrictive CORS, validated uploads (type + 5 MB cap,
 never written to disk), parameterised SQL via SQLAlchemy, login rate limiting, CSP and security headers in nginx,
-secrets only via environment, no runtime cloud dependency. See [docs/security.md](docs/security.md).
+secrets only via environment, no runtime cloud dependency, optional organisation SSO (`AUTH_MODE=oidc`).
+See [docs/security.md](docs/security.md).
 
 ## Known limitations
 

@@ -94,8 +94,8 @@ def load_fd(subset: str = "FD001", data_dir: Path | None = None):
     d = data_dir or ensure_dataset()
     train = read_split(d / f"train_{subset}.txt")
     test = read_split(d / f"test_{subset}.txt")
-    rul = pd.read_csv(d / f"RUL_{subset}.txt", header=None, names=["rul"]).squeeze("columns")
-    rul.index = range(1, len(rul) + 1)
+    values = pd.read_csv(d / f"RUL_{subset}.txt", header=None, names=["rul"])["rul"].to_numpy()
+    rul = pd.Series(values, index=range(1, len(values) + 1), name="rul")
     if len(rul) != test["unit"].nunique():
         raise ValueError("RUL file length does not match number of test units")
     return train, test, rul

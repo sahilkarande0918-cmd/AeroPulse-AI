@@ -230,14 +230,13 @@ def _parts(db, batch, rows, colmap, sensors, report):
             pn = str(_get(row, colmap, "part_number", "")).strip().upper()
             if not re.fullmatch(r"[A-Z0-9][A-Z0-9\-_.]{1,63}", pn):
                 raise ValueError("invalid part number")
-            vals = {"name": str(_get(row, colmap, "name", "")).strip()[:128], "unit": str(_get(row, colmap, "unit", "ea"))[:16],
-                    "on_hand": int(_get(row, colmap, "on_hand")), "reorder_threshold": int(_get(row, colmap, "reorder_threshold")),
-                    "replenishment_qty": int(_get(row, colmap, "replenishment_qty", 0)),
-                    "lead_time_days": int(_get(row, colmap, "lead_time_days", 14))}
+            qty = {k: int(_get(row, colmap, k, d)) for k, d in
+                   (("on_hand", None), ("reorder_threshold", None), ("replenishment_qty", 0), ("lead_time_days", 14))}
+            if min(qty.values()) < 0:
+                raise ValueError("quantities must be >= 0")
+            vals: dict = {"name": str(_get(row, colmap, "name", "")).strip()[:128], "unit": str(_get(row, colmap, "unit", "ea"))[:16], **qty}
             eta = _get(row, colmap, "replenishment_eta")
             vals["replenishment_eta"] = parse_ts(eta) if eta else None
-            if min(vals["on_hand"], vals["reorder_threshold"], vals["replenishment_qty"]) < 0:
-                raise ValueError("quantities must be >= 0")
         except (ValueError, TypeError) as e:
             c["rejected"] += 1
             report["rejected_rows"].append({"row": i, "reason": str(e)})

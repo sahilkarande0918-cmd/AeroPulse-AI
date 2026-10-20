@@ -20,6 +20,17 @@ def test_health_and_error_schema(client):
     assert r.status_code == 422 and r.json()["error"]["code"] == "validation_error"
 
 
+def test_liveness_needs_no_database(client):
+    from app.database import get_db
+    from app.main import app
+
+    def broken():
+        raise RuntimeError("database down")
+        yield
+    app.dependency_overrides[get_db] = broken
+    assert client.get("/health").json() == {"status": "ok"}
+
+
 def test_login_rejects_bad_password_and_rate_limits(client):
     for _ in range(10):
         assert client.post("/api/auth/login", json={"username": "officer", "password": "wrong"}).status_code == 401

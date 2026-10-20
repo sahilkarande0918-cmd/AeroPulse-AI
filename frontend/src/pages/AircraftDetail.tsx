@@ -4,11 +4,13 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, type AircraftRow, type EngineRow, type Prediction, type Recommendation, type WorkOrder } from '../api'
-import { useAuth } from '../auth'
+import { useAuth } from '../auth-context'
+import { CopilotBox } from '../copilot'
 import { DecisionForm } from '../decide'
+import { EngineSchematic } from '../engine-schematic'
+import { ago, fmt, fmtTime, inputCls } from '../format'
 import {
   Button, CheckList, Empty, ErrorState, Field, Loading, MaintBadge, PageHeader, Panel, PriorityTag, RulGauge, Table, Tag, TrustBadge,
-  ago, fmt, fmtTime, inputCls,
 } from '../ui'
 
 interface Detail extends AircraftRow {
@@ -84,6 +86,7 @@ function EnginePanel({ engine }: { engine: EngineRow }) {
   const qc = useQueryClient()
   const p = engine.prediction
   const rerun = useMutation({ mutationFn: () => api.post<Prediction>(`/engines/${engine.id}/predict`), onSuccess: () => qc.invalidateQueries() })
+  const [sensor, setSensor] = useState('s4')
   return (
     <Panel title={<span className="num">Engine #{engine.position} · {engine.serial}</span>}
       meta={<span className="flex items-center gap-2">{engine.source}{p && <TrustBadge state={p.state} />}</span>}>
@@ -107,10 +110,12 @@ function EnginePanel({ engine }: { engine: EngineRow }) {
             <Button busy={rerun.isPending} onClick={() => rerun.mutate()}><RefreshCw className="size-3.5" /> Re-assess with trained model</Button>
           )}
           {rerun.isError && <ErrorState error={rerun.error} />}
+          {p && <CopilotBox predictionId={p.id} question={`Why is ${engine.serial} assessed ${p.state} and which sensors drive its estimate?`} />}
         </div>
         <div className="space-y-5">
+          {p && <EngineSchematic p={p} onSelect={setSensor} />}
           {p?.evidence && p.evidence.length > 0 && <Evidence p={p} />}
-          <SensorChart engineId={engine.id} />
+          <SensorChart engineId={engine.id} sensor={sensor} setSensor={setSensor} />
         </div>
       </div>
     </Panel>
@@ -141,9 +146,8 @@ function Evidence({ p }: { p: Prediction }) {
 
 interface Readings { sensors: Record<string, { symbol: string; description: string; unit: string }>; readings: Record<string, number | string>[] }
 
-function SensorChart({ engineId }: { engineId: number }) {
+function SensorChart({ engineId, sensor, setSensor }: { engineId: number; sensor: string; setSensor: (s: string) => void }) {
   const q = useQuery({ queryKey: ['readings', engineId], queryFn: () => api.get<Readings>(`/engines/${engineId}/readings?last=400`) })
-  const [sensor, setSensor] = useState('s4')
   if (q.isPending) return <Loading label="Loading sensor history" />
   if (q.isError) return <ErrorState error={q.error} />
   const meta = q.data.sensors[sensor]

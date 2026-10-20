@@ -46,7 +46,7 @@ class RulModel:
     def explain_row(self, X: pd.DataFrame, top: int = 8) -> list[dict]:
         row = self.contributions(X.tail(1)).iloc[0]
         vals = X.tail(1)[self.features].iloc[0]
-        items = [
+        items: list[dict] = [
             {"feature": f, "value": float(vals[f]), "contribution": float(row[f])}
             for f in self.features
         ]

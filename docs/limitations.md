@@ -12,7 +12,9 @@
 * Conformal intervals assume exchangeability between calibration and future data. Rows within one engine are
   correlated, and degraded/out-of-distribution inputs void the guarantee — which is why TrustTwin labels such cases.
   Coverage is measured (0.89 test, 0.90 hold-out), not guaranteed.
-* Only FD001 is used. FD002–FD004 (multiple conditions / fault modes) are not yet modelled.
+* The deployed model is FD001 only. FD002–FD004 are benchmarked (`python -m ml.benchmark`) with per-condition
+  normalisation: LightGBM RMSE 26.4 / 17.1 / 27.0, better than Ridge but well short of published deep-learning results on
+  the multi-condition subsets. Not used in the application.
 
 ## TrustTwin and recommendations
 * Thresholds (staleness, spikes, OOD share, RUL bounds) and the action catalogue are **prototype settings**, not
@@ -31,18 +33,24 @@
   expected real-world gains, and are labelled as simulated everywhere.
 
 ## Platform
-* Single-process rate limiting; local authentication only (OIDC path documented, not implemented).
+* Single-process rate limiting. OIDC bearer-token mode is implemented and tested with generated keys, but has not been
+  connected to a real identity provider; the browser login flow relies on an OIDC reverse proxy.
+* **Render Free (public demo):** 0.1 CPU makes CPU-heavy actions noticeably slower than on a laptop (see
+  docs/deployment.md for measured numbers); the service sleeps after 15 min without traffic unless the UptimeRobot
+  monitor keeps it warm, and a cold start takes about a minute. For a lag-free in-person demo use local Docker mode.
 * Audit chain is tamper-evident, not tamper-proof.
-* PDF export uses the browser's print dialog; CSV is the structured export.
-* The optional LLM explainer is implemented but has not been exercised against a live Gemini key in this repository.
+* PDF export is the browser's "Save as PDF" with a dedicated print stylesheet (light theme, no navigation); CSV is the
+  structured export.
+* The optional LLM explainer (backend + UI panel, hidden when disabled) is tested against a mocked Gemini endpoint but
+  has not been exercised against a live Gemini key.
 * The frontend JavaScript bundle is ~830 KB (Recharts); acceptable on a local network, not optimised for low bandwidth.
 
 ## Finished vs planned
 | Finished and tested | Planned |
 |---|---|
-| FD001 model, conformal intervals, SHAP | FD002–FD004, sequence models only if they beat LightGBM under the same protocol |
+| FD001 model, conformal intervals, SHAP; FD001–FD004 benchmark | Multi-condition production model; sequence models only if they beat LightGBM under the same protocol |
 | TrustTwin gate + scenarios + review | Multivariate OOD, sensor-specific reliability models |
 | CP-SAT planner + verifier + baseline | Bays/tooling, multi-skill crews, rolling-horizon re-planning |
 | Ingestion for 4 sources | Scheduled pulls from authorised systems, mapping UI |
-| RBAC, JWT, audit chain | OIDC/SSO, WORM audit anchoring, accredited review |
-| Docker (local PostgreSQL / Neon) | Kubernetes / air-gapped install bundle, monitoring stack |
+| RBAC, JWT, audit chain, OIDC bearer mode | IdP integration in a real organisation, WORM audit anchoring, accredited review |
+| Docker (local PostgreSQL / Neon), Render + Vercel free hosting, uptime monitor | Kubernetes / air-gapped install bundle, metrics stack |

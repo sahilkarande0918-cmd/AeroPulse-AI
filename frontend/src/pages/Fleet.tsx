@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { api, type AircraftRow, type Page } from '../api'
-import { Empty, ErrorState, Field, Loading, MaintBadge, PageHeader, Panel, Table, TrustBadge, ago, fmt, inputCls } from '../ui'
+import { ago, fmt, inputCls } from '../format'
+import { Empty, ErrorState, Field, Loading, MaintBadge, PageHeader, Panel, Table, TrustBadge } from '../ui'
 
 export default function Fleet() {
   const [search, setSearch] = useState('')

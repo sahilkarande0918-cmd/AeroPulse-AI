@@ -12,6 +12,7 @@ import json
 import platform
 import time
 from pathlib import Path
+from typing import Any
 
 import joblib
 import lightgbm as lgb
@@ -31,7 +32,7 @@ from ml.inference import ARTIFACT_DIR, conformal_quantile  # noqa: E402
 
 EVAL_DIR = Path(__file__).resolve().parent / "evaluation"
 
-CONFIG = {
+CONFIG: dict[str, Any] = {
     "subset": "FD001",
     "seed": 42,
     "rul_cap": 125,              # piecewise-linear target (Heimes 2008 convention)
@@ -179,8 +180,8 @@ def main() -> dict:
         shap_info = {
             "method": "shap.TreeExplainer on 2000 fit rows; runtime uses LightGBM pred_contrib (TreeSHAP)",
             "max_abs_diff_shap_vs_pred_contrib": float(np.max(np.abs(sv - contrib))),
-            "mean_abs_shap": sorted(({"feature": f, "value": float(v)} for f, v in
-                                     zip(feats, np.abs(sv).mean(axis=0))), key=lambda d: -d["value"]),
+            "mean_abs_shap": [{"feature": f, "value": v} for f, v in
+                              sorted(zip(feats, np.abs(sv).mean(axis=0).tolist()), key=lambda fv: fv[1], reverse=True)],
         }
         shap.summary_plot(sv, sample, show=False, max_display=15)
         plt.tight_layout()
@@ -216,7 +217,8 @@ def main() -> dict:
                              zip(T_last.index, y_true, p_best, lo, hi, p_ridge)],
     }
 
-    bundle = {"model": model, "feature_names": feats, "sensors": sensors, "version": version,
+    # Native Booster: inference needs only lightgbm (no scikit-learn on the server).
+    bundle = {"model": getattr(model, "booster_", model), "feature_names": feats, "sensors": sensors, "version": version,
               "conformal": conformal, "feature_stats": feature_stats, "sensor_stats": sensor_stats,
               "rul_cap": cfg["rul_cap"], "provenance": provenance, "window": WINDOW, "slope_window": SLOPE_WINDOW,
               "sensor_meta": {s: data.SENSOR_META[s] for s in sensors}}

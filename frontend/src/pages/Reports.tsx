@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Download, ShieldCheck } from 'lucide-react'
 import { ApiError, api, download, type Page } from '../api'
-import { useAuth } from '../auth'
-import { Button, Empty, ErrorState, Loading, PageHeader, Panel, PriorityTag, Table, Tag, TrustBadge, fmt, fmtTime } from '../ui'
+import { useAuth } from '../auth-context'
+import { fmt, fmtTime } from '../format'
+import { Button, Empty, ErrorState, Loading, PageHeader, Panel, PriorityTag, Table, Tag, TrustBadge } from '../ui'
 
 interface RecRow {
   recommendation_id: number; created_at: string; aircraft: string; engine: string; action: string; priority: number; status: string
@@ -33,6 +34,10 @@ export default function Reports() {
           </>}
           <Button variant="ghost" onClick={() => window.print()}>Print / PDF</Button>
         </>} />
+      <p className="mb-4 hidden text-[11px] text-muted print:block">
+        AeroPulse AI · printed {new Date().toLocaleString()} · synthetic demo fleet, NASA C-MAPSS FD001 replay · advisory maintenance
+        intelligence only — not an airworthiness, dispatch or flight authorisation.
+      </p>
       {dlError && <p role="alert" className="mb-3 text-[13px] text-crit">{dlError}</p>}
 
       <div className="space-y-5">

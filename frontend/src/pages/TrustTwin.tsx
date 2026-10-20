@@ -3,11 +3,13 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowRight, ChevronDown, Play, RotateCcw } from 'lucide-react'
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, type AircraftRow, type Check, type Decision, type Evidence, type Page, type Part, type PlanResult, type Technician, type TrustState } from '../api'
-import { useAuth } from '../auth'
+import { useAuth } from '../auth-context'
+import { CopilotBox } from '../copilot'
 import { DecisionForm } from '../decide'
 import { Gantt } from '../gantt'
+import { cx, fmt, inputCls } from '../format'
 import {
-  Button, CheckList, Empty, ErrorState, Field, Loading, PageHeader, Panel, PriorityTag, RulGauge, SimLabel, Table, Tag, TrustBadge, cx, fmt, inputCls,
+  Button, CheckList, Empty, ErrorState, Field, Loading, PageHeader, Panel, PriorityTag, RulGauge, SimLabel, Table, Tag, TrustBadge,
 } from '../ui'
 
 // ---------------------------------------------------------------- types
@@ -257,6 +259,7 @@ function Result({ r }: { r: Run }) {
 
       <Panel title="Why the plan changed" meta="generated from computed results, not an LLM">
         <ul className="list-disc space-y-1 pl-4 text-[13px] text-ink marker:text-muted">{r.result.explanation.map((e, i) => <li key={i}>{e}</li>)}</ul>
+        <div className="mt-3"><CopilotBox scenarioRunId={r.id} question="Summarise why the plan changed and which constraint mattered most." /></div>
       </Panel>
 
       <div className="grid gap-5 lg:grid-cols-2">

@@ -35,12 +35,27 @@ _Last updated: 2026-10-21 (session 1)_
   `.env`; API warm-up at startup. Measured: page data 7–39 ms, browser render 12–260 ms, TrustTwin scenario click→result
   335 ms. **Currently running** in this mode at http://localhost:8080 with a freshly seeded database.
 
+- **Render-Free readiness** (2026-10-21): native Booster artifact (no scikit-learn at runtime), 20-reading inference
+  window, CP-SAT plan cache + deterministic-time limit, OMP=1, startup warm-up, single-process `manage.py start`,
+  DB-free `GET /health`. Measured at 512 MB / 0.1 CPU: 127 MiB idle, 154 MiB peak, cold start 39 s, scenario 1–2 s.
+  `render.yaml` + `frontend/vercel.json` written. No Oracle configs ever existed.
+- **Gaps closed**: mypy clean (`--check-untyped-defs`), pip-audit + npm audit clean (Vitest 5), ESLint 0 warnings,
+  OIDC bearer mode (`AUTH_MODE=oidc`, tested), FD001–FD004 benchmark, SVG engine schematic, Copilot UI panel (hidden
+  when disabled), print/PDF stylesheet, Playwright suite (4 tests, local Edge) + README screenshots.
+
+## Last verified test results (2026-10-21)
+- pytest **77 passed** · ruff clean · mypy clean (33 files)
+- Vitest **11 passed** · ESLint 0 · build OK · secret scan OK · npm audit 0 · pip-audit 0
+- Playwright **4 passed** + `scripts/smoke.py` passed on the production images capped at 512 MB / 0.1 CPU
+
 ## Active / pending
-- Neon now holds a few smoke-test scenario runs/decisions; reset steps in docs/demo-guide.md if a clean demo is wanted.
+- Deploy: Neon reset (owner approved) → Render service → Vercel → UptimeRobot; needs RENDER_API_KEY, VERCEL_TOKEN,
+  UPTIMEROBOT_API_KEY in `.env` (owner adding).
 
 ## Known issues / blockers
-- Slow networks can make the first backend image build take a long time (Dockerfile retries pip downloads).
-- Neon round trip ~280 ms from India → 2–6 s page loads; host the backend near the database for demos.
+- Slow local network makes first Docker builds slow (pip retries configured).
+- Render Free: 0.1 CPU → login ~3 s (bcrypt), scenarios 1–2 s; sleeps after 15 min idle without the uptime monitor.
 
 ## Next steps
-1. Possible improvements: FD002–FD004 multi-condition models; OIDC; rolling-horizon re-planning; Playwright suite.
+1. Deploy and verify live (smoke + Playwright with `E2E_BASE_URL`), record URLs here.
+2. Possible improvements: multi-condition production model; WORM audit anchoring; real IdP integration.

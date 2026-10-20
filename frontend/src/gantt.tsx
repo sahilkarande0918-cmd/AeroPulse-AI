@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Assignment } from './api'
-import { PriorityTag, cx } from './ui'
+import { cx } from './format'
+import { PriorityTag } from './ui'
 
 const PX = 7 // pixels per hour
 const BAR: Record<number, string> = { 1: 'bg-crit/80', 2: 'bg-warn/80', 3: 'bg-tech/75', 4: 'bg-muted/60' }

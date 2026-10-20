@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models import User
 from app.security import PERMISSIONS, audit, create_token, current_user, rate_limit_login, verify_password
@@ -22,6 +23,8 @@ def user_out(u: User) -> dict:
 
 @router.post("/auth/login")
 def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
+    if settings.auth_mode == "oidc":
+        raise HTTPException(404, "Local login is disabled; sign in through the organisation's SSO")
     rate_limit_login(request, body.username)
     user = db.scalar(select(User).where(User.username == body.username))
     if not user or not user.active or not verify_password(body.password, user.password_hash):

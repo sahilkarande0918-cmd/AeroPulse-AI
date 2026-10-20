@@ -38,7 +38,7 @@ def status(db: Session = Depends(get_db), _: User = Depends(require("read"))):
                          .group_by(IngestionBatch.source_type, IngestionBatch.source_name)).all()
     return {
         "app_env": settings.app_env, "mode": "production" if settings.is_production else "demo",
-        "database_dialect": db.bind.dialect.name,
+        "database_dialect": db.get_bind().dialect.name,
         "offline_capable": True,
         "external_calls": ["Gemini API (only when LLM_ENABLED=true)"] if copilot.enabled() else [],
         "llm_enabled": copilot.enabled(),
@@ -65,7 +65,7 @@ def model_info(_: User = Depends(require("read"))):
 def drift(db: Session = Depends(get_db), _: User = Depends(require("read"))):
     """Fleet sensor distribution vs training (fit engines): standardised mean shift and out-of-range share."""
     m = load_model()
-    vals = {s: [] for s in m.sensors}
+    vals: dict[str, list[float]] = {s: [] for s in m.sensors}
     for (v,) in db.execute(select(SensorReading.values)):
         for s in m.sensors:
             if v.get(s) is not None:

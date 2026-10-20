@@ -7,13 +7,13 @@ psycopg[binary]==3.3.6
 pydantic==2.14.1
 pydantic-settings==2.16.1
 pyjwt==2.15.1
+cryptography==50.0.2
 bcrypt==5.0.0
 python-multipart==0.0.32
 httpx==0.28.1
 tzdata==2026.5
 pandas==3.0.6
 numpy==2.4.6
-scikit-learn==1.9.1
 lightgbm==4.7.0
 joblib==1.6.0
 ortools==9.15.6755

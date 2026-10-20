@@ -152,7 +152,7 @@ def decide(body: DecisionIn, db: Session = Depends(get_db), user: User = Depends
     if body.decision != "approve" and len(body.reason.strip()) < 5:
         raise HTTPException(422, "A reason (min 5 characters) is required for rejections, overrides and requests")
     now = utcnow()
-    effect = {}
+    effect: dict[str, object] = {}
     if body.target_type == "recommendation":
         r = db.get(Recommendation, body.target_id)
         if not r:
@@ -247,7 +247,7 @@ def create_schedule(body: ScheduleIn, db: Session = Depends(get_db), user: User 
     result["weights"] = weights
     for old in db.scalars(select(Schedule).where(Schedule.scenario_run_id.is_(None), Schedule.status == "proposed")):
         old.status = "superseded"
-    s = Schedule(created_by=user.id, solver=result["solver"], horizon_start=t0, input_hash=fleet.problem_hash(prob), result=result)
+    s = Schedule(created_by=user.id, solver=result["solver"], horizon_start=t0, input_hash=planner.problem_hash(prob), result=result)
     db.add(s)
     db.flush()
     audit(db, user.username, "schedule.propose", "schedule", s.id, {"solver": s.solver, "kpis": result["kpis"],

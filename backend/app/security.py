@@ -41,7 +41,10 @@ def hash_password(pw: str) -> str:
 
 
 def verify_password(pw: str, hashed: str) -> bool:
-    return bcrypt.checkpw(pw.encode(), hashed.encode())
+    try:
+        return bcrypt.checkpw(pw.encode(), hashed.encode())
+    except ValueError:  # e.g. SSO-provisioned users have no local password hash
+        return False
 
 
 def create_token(user: User) -> str:
@@ -49,9 +52,43 @@ def create_token(user: User) -> str:
     return jwt.encode(payload, settings.jwt_secret_key, algorithm="HS256")
 
 
+_jwks: jwt.PyJWKClient | None = None
+
+
+def _oidc_user(token: str, db: Session) -> User:
+    """Validate an IdP token (signature via JWKS, issuer, audience, expiry) and map its groups to a role."""
+    global _jwks
+    if _jwks is None:
+        _jwks = jwt.PyJWKClient(settings.oidc_jwks_url, cache_keys=True)
+    try:
+        key = _jwks.get_signing_key_from_jwt(token).key
+        claims = jwt.decode(token, key, algorithms=["RS256", "ES256"], audience=settings.oidc_audience,
+                            issuer=settings.oidc_issuer, options={"require": ["exp", "iss", "aud", "sub"]})
+    except jwt.PyJWTError:
+        raise HTTPException(401, "Invalid or expired SSO token") from None
+    mapping = dict(pair.split("=", 1) for pair in settings.oidc_role_map.split(",") if "=" in pair)
+    groups = claims.get(settings.oidc_groups_claim) or []
+    granted = {mapping[g] for g in (groups if isinstance(groups, list) else [groups]) if mapping.get(g) in ROLES}
+    role = next((r for r in ROLES if r in granted), None)          # ROLES is ordered most to least privileged
+    if role is None:
+        raise HTTPException(403, "SSO account has no AeroPulse role (check OIDC_ROLE_MAP)")
+    username = str(claims.get(settings.oidc_username_claim) or claims["sub"])[:64]
+    user = db.scalar(select(User).where(User.username == username))
+    if user is None:  # just-in-time provisioning; the IdP stays the source of truth for the role
+        user = User(username=username, full_name=str(claims.get("name", username))[:128], role=role, password_hash="!sso")
+        db.add(user)
+    elif not user.active:
+        raise HTTPException(401, "User inactive or unknown")
+    user.role = role
+    db.commit()
+    return user
+
+
 def current_user(cred: HTTPAuthorizationCredentials | None = Depends(bearer), db: Session = Depends(get_db)) -> User:
     if cred is None:
         raise HTTPException(401, "Not authenticated")
+    if settings.auth_mode == "oidc":
+        return _oidc_user(cred.credentials, db)
     try:
         payload = jwt.decode(cred.credentials, settings.jwt_secret_key, algorithms=["HS256"])
     except jwt.PyJWTError:

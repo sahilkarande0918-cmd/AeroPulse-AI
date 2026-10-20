@@ -3,8 +3,10 @@
     python manage.py migrate   # alembic upgrade head on DATABASE_URL
     python manage.py seed      # synthetic demo fleet (idempotent)
     python manage.py serve     # API on http://127.0.0.1:8000
+    python manage.py start     # containers: migrate + seed + serve on 0.0.0.0:$PORT in ONE process (imports once)
     python manage.py train     # retrain the model from the NASA archive
 """
+import os
 import sys
 from pathlib import Path
 
@@ -13,7 +15,13 @@ sys.path[:0] = [str(ROOT), str(ROOT / "backend")]
 
 
 def main(cmd: str) -> None:
-    if cmd == "migrate":
+    if cmd == "start":
+        for step in ("migrate", "seed"):
+            main(step)
+        import uvicorn
+        uvicorn.run("app.main:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")),  # noqa: S104 (container)
+                    proxy_headers=True, workers=1)
+    elif cmd == "migrate":
         from alembic import command
         from alembic.config import Config
         command.upgrade(Config(str(ROOT / "backend" / "alembic.ini")), "head")

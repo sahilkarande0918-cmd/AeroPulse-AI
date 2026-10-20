@@ -54,3 +54,17 @@ h1, h2, h3, h4 { font-style: normal; margin: 0; }
 .recharts-cartesian-grid line { stroke: var(--color-line); }
 .recharts-default-tooltip { background: var(--color-raised) !important; border: 1px solid var(--color-line-strong) !important; }
 .recharts-tooltip-label, .recharts-tooltip-item { color: var(--color-ink) !important; font-size: 12px; }
+
+/* Print / "Save as PDF": light palette, no navigation chrome or controls. */
+@media print {
+  :root {
+    --color-canvas: #ffffff; --color-surface: #ffffff; --color-raised: #f2f4f7; --color-line: #d4dae1;
+    --color-line-strong: #b5c0cb; --color-ink: #111d2a; --color-muted: #48586a; --color-tech: #1d6a80;
+    --color-ok: #2b7660; --color-warn: #8f5d0e; --color-crit: #a33838; --color-on-accent: #ffffff;
+  }
+  body { background: #fff; font-size: 11px; }
+  aside, .app-topbar, button, select, textarea, input { display: none !important; }
+  section, li, tr { break-inside: avoid; }
+  main { max-width: none !important; padding: 0 !important; }
+  .overflow-x-auto { overflow: visible !important; }
+}

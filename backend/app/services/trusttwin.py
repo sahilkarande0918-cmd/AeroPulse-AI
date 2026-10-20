@@ -5,7 +5,7 @@ Scenarios are sandboxed: they never modify live work orders, inventory or roster
 import copy
 import hashlib
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import lru_cache
 
 import numpy as np
@@ -45,11 +45,11 @@ def _future_readings(engine: Engine, after_cycle: int, n: int) -> list[dict]:
         return []
     raw = holdout_raw()
     g = raw[(raw.unit == engine.source_unit) & (raw.cycle > after_cycle)].head(n)
-    return [{"cycle": int(r["cycle"]), "values": {k: float(v) for k, v in r.items() if k.startswith("s")}}
+    return [{"cycle": int(r["cycle"]), "values": {str(k): float(v) for k, v in r.items() if str(k).startswith("s")}}
             for r in g.to_dict("records")]
 
 
-def perturb(readings: list[dict], engine: Engine, p: ScenarioParams, now) -> tuple[list[dict], object, list[str]]:
+def perturb(readings: list[dict], engine: Engine, p: ScenarioParams, now: datetime) -> tuple[list[dict], datetime, list[str]]:
     rs = copy.deepcopy(readings)
     notes = []
     last_cycle = rs[-1]["cycle"] if rs else 0
@@ -109,8 +109,8 @@ def _outcomes(plan: dict, assessments: dict[int, dict], task_engine: dict[str, i
         risk.append({"task": task, "engine_id": eid, "rul_lower": round(a["rul_lower"], 1),
                      "starts_in_h": start, "cycles_flown_before_start": None if cycles_until is None else round(cycles_until, 1),
                      "margin_cycles": None if margin is None else round(margin, 1),
-                     "flag": "unscheduled" if start is None else ("margin exhausted" if margin < 0 else "ok")})
-    down = {}
+                     "flag": "unscheduled" if margin is None else ("margin exhausted" if margin < 0 else "ok")})
+    down: dict[str, int] = {}
     for a in plan["assignments"]:
         down[a["aircraft"]] = down.get(a["aircraft"], 0) + (a["end"] - a["start"])
     return {"engine_risk": risk, "aircraft_maintenance_hours": down,
@@ -140,7 +140,7 @@ def _diff(base: dict, rev: dict) -> list[dict]:
     return out
 
 
-def run(db: Session, p: ScenarioParams, user_id: int | None, now=None) -> ScenarioRun:
+def run(db: Session, p: ScenarioParams, user_id: int | None, now: datetime | None = None) -> ScenarioRun:
     engine = db.get(Engine, p.engine_id)
     if engine is None:
         raise LookupError("engine not found")
@@ -240,6 +240,6 @@ def run(db: Session, p: ScenarioParams, user_id: int | None, now=None) -> Scenar
                               scenario_run_id=run_.id))
     for plan, prob, label in ((base_plan, base_prob, "baseline"), (rev_plan, rev_prob, "revised")):
         db.add(Schedule(created_by=user_id, solver=f"cp-sat ({label})", horizon_start=t0,
-                        input_hash=fleet.problem_hash(prob), result=plan, scenario_run_id=run_.id))
+                        input_hash=planner.problem_hash(prob), result=plan, scenario_run_id=run_.id))
     db.flush()
     return run_

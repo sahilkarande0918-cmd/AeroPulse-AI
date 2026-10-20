@@ -184,3 +184,13 @@ def test_policies_share_identical_conditions(monkeypatch):  # scenario 15
     r = simulator.compare(simulator.SimParams(seed=3, days=60))
     assert len(seen) == 2 and seen[0] == seen[1]
     assert r["reactive"]["metrics"]["recommendations"] == 0 and "simulated" in r["label"]
+
+
+def test_cpsat_plan_cache_returns_independent_copies():
+    p = base_problem()
+    a, b = planner.solve_cpsat(p), planner.solve_cpsat(p)
+    assert a == b and a is not b
+    a["assignments"].clear()
+    assert planner.solve_cpsat(p)["assignments"]          # cache not mutated through a returned copy
+    p.parts["KIT"] = PartStock(0, [])
+    assert planner.solve_cpsat(p) != b                     # different inputs are solved, not served from cache

@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ApiError, api, type Part } from '../api'
-import { useAuth } from '../auth'
-import { Button, ErrorState, Field, Loading, PageHeader, Panel, Stat, Table, Tag, fmtTime, inputCls } from '../ui'
+import { useAuth } from '../auth-context'
+import { fmtTime, inputCls } from '../format'
+import { Button, ErrorState, Field, Loading, PageHeader, Panel, Stat, Table, Tag } from '../ui'
 
 export default function Parts() {
   const { can } = useAuth()

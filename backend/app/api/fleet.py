@@ -60,7 +60,7 @@ def _fleet_rows(db: Session) -> list[dict]:
     for ac in db.scalars(select(Aircraft).order_by(Aircraft.tail)):
         wos = [w for w in open_wos if w.aircraft_id == ac.id]
         preds = [latest.get(e.id) for e in ac.engines]
-        last = max((p.quality.get("last_recorded_at") for p in preds if p and p.quality.get("last_recorded_at")), default=None)
+        last = max((str(p.quality["last_recorded_at"]) for p in preds if p and p.quality.get("last_recorded_at")), default=None)
         rows.append({"id": ac.id, "tail": ac.tail, "type_name": ac.type_name, "base": ac.base,
                      "maintenance_state": maintenance_state(preds, wos, th), "last_data_update": last,
                      "open_work_orders": len(wos),

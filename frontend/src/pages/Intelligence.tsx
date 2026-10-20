@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { api } from '../api'
-import { ErrorState, Loading, PageHeader, Panel, Stat, Table, Tag, fmt } from '../ui'
+import { fmt } from '../format'
+import { ErrorState, Loading, PageHeader, Panel, Stat, Table, Tag } from '../ui'
 
 type M = { mae: number; rmse: number; bias: number; phm08_score: number; n: number }
 interface Report {

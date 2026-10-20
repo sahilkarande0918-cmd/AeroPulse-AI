@@ -23,6 +23,22 @@ the capped target); hold-out 0.899 overall and 0.964 for RUL ≤ 50. Mean test i
 Context: published FD001 results for tree ensembles and deep sequence models typically report RMSE ≈ 12–18; this
 model is in that band. No claim of state-of-the-art is made.
 
+## All four C-MAPSS subsets (evaluation only)
+`python -m ml.benchmark` → `ml/artifacts/benchmark_report.json`. One protocol for every subset: 80 % fit / 20 %
+calibration engines (seed 42), same features and LightGBM config, per-operating-condition sensor standardisation for
+FD002/FD004, official test set at each engine's last cycle. The application keeps serving the FD001 model.
+
+| Subset | Conditions / fault modes | LightGBM RMSE | MAE | Ridge RMSE | 90 % interval coverage |
+|---|---|---|---|---|---|
+| FD001 | 1 / 1 | 16.06 | 11.74 | 21.64 | 0.89 |
+| FD002 | 6 / 1 | 26.40 | 17.88 | 30.02 | 0.92 |
+| FD003 | 1 / 2 | 17.05 | 12.61 | 21.11 | 0.85 |
+| FD004 | 6 / 2 | 26.99 | 19.52 | 31.48 | 0.89 |
+
+(FD001 here differs slightly from the deployed model's 15.74 because this protocol uses an 80/20 split instead of
+65/15/20.) Multi-condition subsets are clearly harder for this feature set; published deep-learning results on FD002/FD004
+are substantially better, so a production multi-condition model would need more work.
+
 ## TrustTwin gate sanity check
 On clean hold-out data sampled every 7 cycles (585 assessments) the gate returned 525 VALID and 60 DEGRADED; every
 DEGRADED came from the "history < 20 cycles" check (expected for new engines). No false OOD or spike flags.

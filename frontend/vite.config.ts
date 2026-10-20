@@ -7,5 +7,5 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: { proxy: { '/api': 'http://127.0.0.1:8000' } },
   build: { chunkSizeWarningLimit: 900 },
-  test: { environment: 'jsdom', setupFiles: ['./src/test-setup.ts'], globals: true },
+  test: { environment: 'jsdom', setupFiles: ['./src/test-setup.ts'], globals: true, exclude: ['e2e/**', 'node_modules/**'] },
 })

@@ -6,8 +6,8 @@ import {
   Settings as SettingsIcon, ShieldCheck, X,
 } from 'lucide-react'
 import { api } from './api'
-import { useAuth } from './auth'
-import { cx } from './ui'
+import { useAuth } from './auth-context'
+import { cx } from './format'
 import Overview from './pages/Overview'
 import Fleet from './pages/Fleet'
 import AircraftDetail from './pages/AircraftDetail'
@@ -76,7 +76,7 @@ export default function App() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-line bg-canvas/95 px-4">
+        <header className="app-topbar sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-line bg-canvas/95 px-4">
           <button className="p-1 text-muted hover:text-ink md:hidden" aria-label="Open navigation" onClick={() => setMobileOpen(true)}><Menu className="size-5" /></button>
           <span className="hidden truncate text-xs text-muted sm:inline">Advisory decision support · synthetic demo fleet · NASA C-MAPSS FD001 replay</span>
           <span className="ml-auto flex items-center gap-3 text-xs">

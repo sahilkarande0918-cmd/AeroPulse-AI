@@ -44,6 +44,38 @@ Engine settings tuned for Neon (`backend/app/database.py`): `pool_pre_ping` + `p
 auto-suspend; `prepare_threshold=None` keeps the PgBouncer pooler endpoint (`-pooler` host, transaction mode) safe;
 TLS is enforced by `sslmode=require` in the URL. Only non-sensitive demonstration data should go to a hosted service.
 
+## Free-tier hosting
+
+| Piece | Service (free plan) | Config |
+|---|---|---|
+| Frontend (static SPA) | Vercel | `frontend/vercel.json` — builds Vite, rewrites `/api/*` to Render (same origin for the browser), CSP + security headers |
+| Backend (FastAPI, Docker) | Render Free web service, region Ohio | `render.yaml` — `plan: free`, `healthCheckPath: /health`, secrets entered in Render |
+| Database | Neon Free, AWS us-east-2 | pooled connection string with `sslmode=require` |
+| Uptime | UptimeRobot Free, 5-minute HTTP check | `GET https://<render-service>.onrender.com/health` |
+
+Render Free sleeps after 15 minutes without traffic; the 5-minute monitor keeps it awake (one service ≈ 730 h/month,
+inside the 750 free instance-hours). `/health` deliberately touches neither the database nor the model, so the pings do
+not keep the Neon compute awake. Paid plans are never enabled without the owner's approval.
+
+### Measured on Render-equivalent limits (Docker `--cpus 0.1 --memory 512m`, final image, 2026-10-21)
+
+| Metric | Value |
+|---|---|
+| Image (Python 3.11-slim + LightGBM, OR-Tools, pandas, SciPy; no scikit-learn/SHAP/matplotlib) | 878 MB on disk |
+| Memory after startup / peak incl. 365-day × 40-aircraft stress simulation | 127 MiB / 154 MiB (limit 512) |
+| Cold start (migrate + seed check + model + hold-out predictions) to serving | 39 s (was 90 s with three processes) |
+| Page data (fleet, overview, parts, work orders, model) | 0.1–0.3 s |
+| TrustTwin disrupted scenario (3 plans + 2 assessments) first / repeated | 1.6–2.0 s / ~1.0 s |
+| CP-SAT plan, live backlog | 0.2–0.6 s |
+| Login (bcrypt cost 12, intentionally slow) | ~3 s |
+| Playwright suite (4 browser tests) + `scripts/smoke.py` | pass |
+
+Optimisations that got there, all result-preserving and tested: native LightGBM Booster artifact (no scikit-learn at
+runtime), inference features computed on the last 20 readings only, CP-SAT plans cached by input hash with a
+deterministic-time limit, OpenMP pinned to one thread, model + hold-out predictions warmed at startup, and one Python
+process for migrate + seed + serve (`python manage.py start`). Training never runs on Render (`ml/` training extras are
+not installed in the image).
+
 ## Local PostgreSQL (offline / on-prem / live demos)
 
 `docker-compose.local.yml` adds the database and **overrides** `DATABASE_URL`, so this mode stays local even when `.env`

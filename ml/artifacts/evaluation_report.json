@@ -1,8 +1,8 @@
 {
   "model_version": "fd001-lgbm_a-e2bd89e2",
   "selected_model": "lgbm_a",
-  "trained_at_utc": "2026-10-20T16:01:44Z",
-  "training_seconds": 13.9,
+  "trained_at_utc": "2026-10-20T19:35:07Z",
+  "training_seconds": 15.0,
   "config": {
     "subset": "FD001",
     "seed": 42,

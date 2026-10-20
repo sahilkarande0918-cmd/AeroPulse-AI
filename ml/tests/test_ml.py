@@ -89,3 +89,27 @@ def test_training_is_reproducible(fd001):
     p = [lgb.LGBMRegressor(**CONFIG["candidates"]["lgbm_b"], random_state=42, deterministic=True, force_row_wise=True,
                            n_jobs=4, verbose=-1).fit(F[feats], F.rul).predict(F[feats].head(50)) for _ in range(2)]
     np.testing.assert_array_equal(p[0], p[1])
+
+
+def test_inference_window_matches_full_history(fd001):
+    """Inference builds features on the last SLOPE_WINDOW readings only; the last row must be identical."""
+    from ml.features import SLOPE_WINDOW
+    _, test, _ = fd001
+    model = load_model()
+    g = test[test.unit == 31]
+    full = model.features_for(g).tail(1).drop(columns="unit").reset_index(drop=True)
+    tail = model.features_for(g.tail(SLOPE_WINDOW)).tail(1).drop(columns="unit").reset_index(drop=True)
+    pd.testing.assert_frame_equal(full, tail)
+
+
+def test_artifact_needs_no_sklearn():
+    import lightgbm as lgb
+    assert isinstance(load_model().model, lgb.Booster)
+
+
+def test_benchmark_report_covers_all_subsets():
+    rep = json.loads((ARTIFACT_DIR / "benchmark_report.json").read_text())
+    res = {r["subset"]: r for r in rep["results"]}
+    assert set(res) == {"FD001", "FD002", "FD003", "FD004"}
+    assert all(r["lightgbm"]["rmse"] < r["ridge"]["rmse"] for r in res.values())
+    assert res["FD002"]["condition_normalised"] and not res["FD001"]["condition_normalised"]
