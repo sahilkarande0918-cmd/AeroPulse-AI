@@ -13,6 +13,9 @@ Smart India Hackathon 2026 problem **SIH26249 — Air Power: Predictive Maintena
 
 ---
 
+**New to the project?** Read the 4-page beginner overview: [docs/AeroPulse-AI-Overview.pdf](docs/AeroPulse-AI-Overview.pdf)
+(source `docs/overview/aeropulse-overview.html`, rebuild with `node scripts/build_overview_pdf.mjs`).
+
 ## Why it is different — AeroPulse TrustTwin
 
 Most predictive-maintenance demos show a remaining-useful-life (RUL) number. AeroPulse answers the harder question:
