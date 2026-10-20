@@ -30,6 +30,16 @@ The backend container runs with `APP_ENV=production` and refuses to start withou
    `postgres://` and `postgresql://` are both accepted and routed through psycopg 3.
 3. `docker compose up -d --build` (no `local-db` profile) — or locally `python manage.py migrate && python manage.py seed`.
 
+**Verified 2026-10-21** against the project's Neon database (PostgreSQL 18.6, AWS us-east-2, pooled endpoint with
+`sslmode=require&channel_binding=require`; client TLS confirmed): migration and seed succeed and are idempotent on re-run,
+seeded contents match local runs (20 predictions: 16 VALID / 4 DEGRADED), `scripts/smoke.py` passes both for the local
+dev server and for the Docker stack using Neon, the audit chain verifies, and data survives a backend restart.
+
+**Latency: put the backend next to the database.** Each query to us-east-2 from India costs ~280 ms, so a page that
+needs 8–18 queries takes 2–6 s (relationships are batch-loaded with `lazy="selectin"`, so the query count no longer grows
+with fleet size). For demos, either run the local-db profile, host the backend in the same region as Neon, or create the
+Neon project in the region nearest to where the backend runs.
+
 Engine settings tuned for Neon (`backend/app/database.py`): `pool_pre_ping` + `pool_recycle=300` survive compute
 auto-suspend; `prepare_threshold=None` keeps the PgBouncer pooler endpoint (`-pooler` host, transaction mode) safe;
 TLS is enforced by `sslmode=require` in the URL. Only non-sensitive demonstration data should go to a hosted service.

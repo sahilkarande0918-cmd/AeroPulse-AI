@@ -22,6 +22,8 @@ an aircraft."*
 ## Reset between rehearsals
 Local dev: delete `backend/aeropulse_dev.db`, then `python manage.py migrate && python manage.py seed`.
 Docker: `docker compose --profile local-db down -v && docker compose --profile local-db up -d`.
+Neon (destructive — deletes all AeroPulse tables in that database): `cd backend && alembic downgrade base`, then
+`python manage.py migrate && python manage.py seed`.
 
 ## Likely judge questions
 * *Is this validated on IAF aircraft?* No. Public simulated commercial-engine data; domain transfer is the main open problem (docs/limitations.md).

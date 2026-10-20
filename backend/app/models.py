@@ -1,4 +1,8 @@
-"""Persistence model. Prediction, Recommendation and Decision are deliberately separate entities."""
+"""Persistence model. Prediction, Recommendation and Decision are deliberately separate entities.
+
+Relationships load with lazy="selectin" (one batched query per relationship, not one per row):
+against a remote database such as Neon every extra round trip costs hundreds of milliseconds.
+"""
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, Float, ForeignKey, Integer, String, Text, UniqueConstraint
@@ -24,7 +28,7 @@ class Aircraft(Base):
     type_name: Mapped[str] = mapped_column(String(128))
     base: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(32), default="available")
-    engines: Mapped[list["Engine"]] = relationship(back_populates="aircraft", order_by="Engine.position")
+    engines: Mapped[list["Engine"]] = relationship(back_populates="aircraft", order_by="Engine.position", lazy="selectin")
 
 
 class Engine(Base):
@@ -35,7 +39,7 @@ class Engine(Base):
     position: Mapped[int] = mapped_column(Integer)
     source_dataset: Mapped[str] = mapped_column(String(64))       # provenance of the sensor stream
     source_unit: Mapped[int | None] = mapped_column(Integer)      # C-MAPSS unit id it replays
-    aircraft: Mapped[Aircraft] = relationship(back_populates="engines")
+    aircraft: Mapped[Aircraft] = relationship(back_populates="engines", lazy="selectin")
 
 
 class SensorReading(Base):
@@ -90,7 +94,7 @@ class Decision(Base):
     reason: Mapped[str] = mapped_column(Text)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
-    user: Mapped[User] = relationship()
+    user: Mapped[User] = relationship(lazy="selectin")
 
 
 class Technician(Base):
@@ -142,7 +146,7 @@ class WorkOrder(Base):
     external_id: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     batch_id: Mapped[int | None] = mapped_column(ForeignKey("ingestion_batches.id"))
-    aircraft: Mapped[Aircraft] = relationship()
+    aircraft: Mapped[Aircraft] = relationship(lazy="selectin")
 
 
 class MaintenanceRecord(Base):

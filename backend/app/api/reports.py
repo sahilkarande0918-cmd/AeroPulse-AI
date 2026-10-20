@@ -38,11 +38,15 @@ def verify(db: Session = Depends(get_db), _: User = Depends(require("audit:read"
 
 
 def _recommendation_rows(db: Session) -> list[dict]:
+    recs = db.scalars(select(Recommendation).order_by(Recommendation.id)).all()
+    preds = {p.id: p for p in db.scalars(select(Prediction).where(Prediction.id.in_([r.prediction_id for r in recs])))}
+    engines = {e.id: e for e in db.scalars(select(Engine))}
+    decisions: dict[int, list[Decision]] = {}
+    for d in db.scalars(select(Decision).where(Decision.target_type == "recommendation").order_by(Decision.id)):
+        decisions.setdefault(d.target_id, []).append(d)
     rows = []
-    for r in db.scalars(select(Recommendation).order_by(Recommendation.id)):
-        p = db.get(Prediction, r.prediction_id)
-        e = db.get(Engine, r.engine_id)
-        ds = db.scalars(select(Decision).where(Decision.target_type == "recommendation", Decision.target_id == r.id)).all()
+    for r in recs:
+        p, e, ds = preds[r.prediction_id], engines[r.engine_id], decisions.get(r.id, [])
         rows.append({"recommendation_id": r.id, "created_at": iso(r.created_at), "aircraft": e.aircraft.tail,
                      "engine": e.serial, "action": r.action, "priority": r.priority, "status": r.status,
                      "trust_state": p.state, "rul": None if p.rul is None else round(p.rul, 1),

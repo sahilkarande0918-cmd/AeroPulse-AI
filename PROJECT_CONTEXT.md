@@ -46,4 +46,5 @@ baseline vs revised, compute engine risk margins, and route the result to human 
 
 ## Database
 Primary hosted: **Neon PostgreSQL** via SQLAlchemy 2 + Alembic (psycopg 3, `sslmode=require`, pooler-safe settings).
-Offline/on-prem: local PostgreSQL container. SQLite only for tests/quick dev. No Supabase.
+Verified live on Neon (us-east-2) on 2026-10-21. Offline/on-prem: local PostgreSQL container. SQLite only for
+tests/quick dev. No Supabase.

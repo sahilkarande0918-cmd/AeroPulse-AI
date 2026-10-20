@@ -19,3 +19,4 @@
 | D15 | Local auth (bcrypt + JWT) with role checks in a single `require()` dependency | Demo-ready; OIDC/SSO replaces only the login endpoint later. |
 | D16 | Drift = standardised mean shift + out-of-range share; no Evidently | Two statistics answer the question; avoids a heavy dependency. |
 | D17 | Optional Gemini explainer, off by default | Core platform fully local; LLM only rephrases stored facts and cannot act. |
+| D18 | Relationships use `lazy="selectin"`; reports prefetch in bulk | Verified on Neon: ~280 ms per round trip made per-row lazy loads cost 5–9 s per page. Batched loading fixes every caller at the model, not per endpoint. |
