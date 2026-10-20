@@ -1,0 +1,6 @@
+pn,description,uom,qty,min_stock,on_order,eta,lead_time
+APX-T50-PROBE,LPT exit temperature probe (fictional),ea,1,2,2,2026-10-24T09:00:00+05:30,20
+APX-OIL-FILTER,Engine oil filter element (fictional),ea,20,10,0,,7
+APX-HPT-MOD-KIT,Different name - identity conflict (fictional),ea,5,2,0,,45
+APX-STARTER-VALVE,Air starter valve (fictional),ea,2,1,0,,30
+bad part!,Invalid part number,ea,1,1,0,,1

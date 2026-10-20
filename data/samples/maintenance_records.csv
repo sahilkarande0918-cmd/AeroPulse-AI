@@ -1,0 +1,7 @@
+record_id,tail,esn,date,type,remarks,technician
+EXT-TL-0001,AP-101,AP-ENG-01,2026-10-12T10:30:00+05:30,inspection,Borescope inspection HPT stage 1 - minor tip erosion,Synthetic Tech A
+EXT-TL-0002,AP-102,,2026-10-14,servicing,Engine oil replenishment,Synthetic Tech B
+EXT-TL-0002,AP-102,,2026-10-14,servicing,Engine oil replenishment,Synthetic Tech B
+EXT-TL-0003,AP-199,,2026-10-15,repair,Unknown aircraft - should be rejected,Synthetic Tech C
+EXT-TL-0004,AP-103,AP-ENG-01,2026-10-15,repair,Engine not fitted to this aircraft - should be rejected,Synthetic Tech C
+EXT-TL-0005,AP-104,,2026-10-16,overhaul,Invalid record type - should be rejected,Synthetic Tech D

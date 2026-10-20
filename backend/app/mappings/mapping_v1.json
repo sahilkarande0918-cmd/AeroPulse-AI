@@ -1,0 +1,52 @@
+{
+  "version": "mapping-v1",
+  "description": "Column aliases, canonical units and unit conversions for CSV/JSON ingestion. Copy to mapping-v2 and change version when adapting to an authorised source system.",
+  "default_timezone": "Asia/Kolkata",
+  "sources": {
+    "sensor": {
+      "required": ["engine_serial", "cycle", "recorded_at"],
+      "aliases": {"engine_serial": ["engine_serial", "esn", "engine"], "cycle": ["cycle", "cycles", "flight_cycle"],
+                  "recorded_at": ["recorded_at", "timestamp", "time"]}
+    },
+    "maintenance": {
+      "required": ["source_record_id", "aircraft_tail", "performed_at", "record_type", "description"],
+      "aliases": {"source_record_id": ["source_record_id", "record_id", "id"], "aircraft_tail": ["aircraft_tail", "tail", "aircraft"],
+                  "engine_serial": ["engine_serial", "esn"], "performed_at": ["performed_at", "date", "timestamp"],
+                  "record_type": ["record_type", "type"], "description": ["description", "remarks"],
+                  "performed_by": ["performed_by", "technician"]},
+      "record_types": ["inspection", "repair", "replacement", "servicing", "defect"]
+    },
+    "parts": {
+      "required": ["part_number", "name", "on_hand", "reorder_threshold"],
+      "aliases": {"part_number": ["part_number", "pn"], "name": ["name", "description"], "unit": ["unit", "uom"],
+                  "on_hand": ["on_hand", "qty", "stock"], "reorder_threshold": ["reorder_threshold", "min_stock"],
+                  "replenishment_qty": ["replenishment_qty", "on_order"], "replenishment_eta": ["replenishment_eta", "eta"],
+                  "lead_time_days": ["lead_time_days", "lead_time"]}
+    },
+    "work_orders": {
+      "required": ["external_id", "aircraft_tail", "title", "task_type", "required_skill", "duration_hours", "priority", "due_at"],
+      "aliases": {"external_id": ["external_id", "wo_number", "id"], "aircraft_tail": ["aircraft_tail", "tail"],
+                  "engine_serial": ["engine_serial", "esn"], "title": ["title", "description"], "task_type": ["task_type", "type"],
+                  "required_skill": ["required_skill", "skill", "trade"], "duration_hours": ["duration_hours", "duration", "hours"],
+                  "priority": ["priority"], "due_at": ["due_at", "due", "due_date"], "parts": ["parts"],
+                  "predecessors": ["predecessors", "depends_on"]},
+      "task_types": ["inspection", "replacement", "servicing", "troubleshooting"],
+      "skills": ["powerplant", "avionics", "ndt", "airframe"]
+    }
+  },
+  "sensor_units": {
+    "s1": "degR", "s2": "degR", "s3": "degR", "s4": "degR",
+    "s5": "psia", "s6": "psia", "s7": "psia", "s11": "psia",
+    "s8": "rpm", "s9": "rpm", "s13": "rpm", "s14": "rpm", "s18": "rpm", "s19": "rpm",
+    "s10": "ratio", "s15": "ratio", "s16": "ratio", "s12": "pps/psi", "s17": "count", "s20": "lbm/s", "s21": "lbm/s"
+  },
+  "unit_aliases": {"degR": ["degR", "R", "rankine"], "K": ["K", "kelvin"], "degC": ["degC", "C", "celsius"],
+                   "psia": ["psia", "psi"], "kPa": ["kPa"], "rpm": ["rpm"], "ratio": ["ratio", "-"],
+                   "pps/psi": ["pps/psi"], "count": ["count"], "lbm/s": ["lbm/s"], "kg/s": ["kg/s"]},
+  "conversions": {
+    "K->degR": {"scale": 1.8, "offset": 0.0},
+    "degC->degR": {"scale": 1.8, "offset": 491.67},
+    "kPa->psia": {"scale": 0.1450377, "offset": 0.0},
+    "kg/s->lbm/s": {"scale": 2.2046226, "offset": 0.0}
+  }
+}

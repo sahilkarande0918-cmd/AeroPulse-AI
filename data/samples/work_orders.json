@@ -1,0 +1,9 @@
+{"records": [
+  {"wo_number": "EXT-WO-501", "tail": "AP-109", "title": "Air starter valve functional check", "type": "inspection",
+   "skill": "powerplant", "hours": 2, "priority": 3, "due": "2026-10-28T17:00:00+05:30", "parts": [], "depends_on": []},
+  {"wo_number": "EXT-WO-502", "tail": "AP-109", "title": "Replace air starter valve", "type": "replacement",
+   "skill": "powerplant", "hours": 4, "priority": 3, "due": "2026-10-30T17:00:00+05:30",
+   "parts": [{"part_number": "APX-STARTER-VALVE", "qty": 1}], "depends_on": ["EXT-WO-501"]},
+  {"wo_number": "EXT-WO-503", "tail": "AP-109", "title": "Skill not in mapping - rejected", "type": "inspection",
+   "skill": "hydraulics", "hours": 2, "priority": 2, "due": "2026-10-28", "parts": [], "depends_on": []}
+]}

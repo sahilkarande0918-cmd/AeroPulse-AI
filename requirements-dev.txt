@@ -1,0 +1,4 @@
+-r backend/requirements.txt
+-r ml/requirements.txt
+pytest==9.1.1
+ruff

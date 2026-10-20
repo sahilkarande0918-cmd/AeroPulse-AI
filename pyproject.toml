@@ -1,0 +1,21 @@
+[project]
+name = "aeropulse-ai"
+version = "1.0.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = [".", "backend"]
+testpaths = ["ml/tests", "backend/tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+extend-exclude = ["backend/alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "S"]
+ignore = ["S101", "S311", "B008", "B905", "E702", "S105", "S106"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "ml", "tests"]

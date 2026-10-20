@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+# Data (download with: python -m ml.train  -> ml/data.py ensure_dataset)
+ml/data/raw/
+# Local databases / env
+*.db
+.env
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
