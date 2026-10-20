@@ -24,16 +24,18 @@ _Last updated: 2026-10-20 (session 1)_
 - `npm test` (Vitest): **8 passed** · `npm run build`: OK · `check:secrets`: OK (and proven to catch a planted secret)
 - `npm run lint`: 0 errors (6 fast-refresh warnings, dev-only)
 
+- **Docker** (`docker compose --profile local-db up -d --build`): db + backend + frontend healthy; migrate + seed on
+  start; `scripts/smoke.py http://localhost:8080` **passed**; CSP/X-Frame headers present; decisions persist across a
+  backend container restart on PostgreSQL.
+
 ## Active / pending
-- Docker image build blocked intermittently by network (Docker Hub / PyPI TLS timeouts) — see PROGRESS "Known issues".
 - Connect to the owner's Neon instance once `DATABASE_URL` is in `.env` (never committed).
 - Push to GitHub (needs owner's git credentials on this machine).
 
 ## Known issues / blockers
-- Docker backend image: `pip install` failed on flaky network; Dockerfile now retries. Frontend image builds.
+- Slow networks can make the first backend image build take a long time (Dockerfile retries pip downloads).
 - Neon not connected yet (needs owner's connection string).
 
 ## Next steps
-1. Finish `docker compose --profile local-db up -d --build`; smoke-test http://localhost:8080.
-2. With Neon URL: `python manage.py migrate && python manage.py seed`, then `docker compose up -d`.
-3. Possible improvements: FD002–FD004 multi-condition models; OIDC; rolling-horizon re-planning; Playwright suite.
+1. With Neon URL: `python manage.py migrate && python manage.py seed`, then `docker compose up -d`.
+2. Possible improvements: FD002–FD004 multi-condition models; OIDC; rolling-horizon re-planning; Playwright suite.
