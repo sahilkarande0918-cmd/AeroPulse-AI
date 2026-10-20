@@ -86,7 +86,7 @@ def diagnose(p: Problem) -> dict[str, str]:
         if not qualified:
             reasons[t.id] = f"No available technician holds skill '{t.skill}'."
             continue
-        if not any(_fits_somewhere(x, t, p.horizon) for x in qualified):
+        if not any(_earliest_free(x.blocked, t.release, t.duration, p.horizon) is not None for x in qualified):
             reasons[t.id] = f"No qualified technician has a free {t.duration} h window within the horizon."
             continue
         for pn, q in t.parts.items():
@@ -110,10 +110,6 @@ def diagnose(p: Problem) -> dict[str, str]:
                 reasons[t.id] = f"Blocked by unschedulable predecessor {next(d for d in t.predecessors if d in reasons)}."
                 changed = True
     return reasons
-
-
-def _fits_somewhere(tech: Tech, task: Task, horizon: int) -> bool:
-    return _earliest_free(tech.blocked, task.release, task.duration, horizon) is not None
 
 
 def _earliest_free(busy: list[tuple[int, int]], start: int, dur: int, horizon: int) -> int | None:

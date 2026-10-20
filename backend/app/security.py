@@ -84,13 +84,17 @@ def rate_limit_login(request: Request, username: str, limit: int = 10, window_s:
     q.append(now)
 
 
+def _event_body(ts, actor, action, entity_type, entity_id, details) -> str:
+    return json.dumps({"ts": ts.isoformat(), "actor": actor, "action": action, "entity_type": entity_type,
+                       "entity_id": str(entity_id), "details": details or {}}, sort_keys=True, default=str)
+
+
 def audit(db: Session, actor: str, action: str, entity_type: str, entity_id, details: dict | None = None) -> AuditEvent:
     """Append an audit event chained to the previous one by SHA-256 (tamper-evident, not tamper-proof)."""
     prev = db.scalar(select(AuditEvent).order_by(AuditEvent.id.desc()).limit(1))
     prev_hash = prev.hash if prev else "0" * 64
     ts = utcnow()
-    body = json.dumps({"ts": ts.isoformat(), "actor": actor, "action": action, "entity_type": entity_type,
-                       "entity_id": str(entity_id), "details": details or {}}, sort_keys=True, default=str)
+    body = _event_body(ts, actor, action, entity_type, entity_id, details)
     ev = AuditEvent(created_at=ts, actor=actor, action=action, entity_type=entity_type, entity_id=str(entity_id),
                     details=json.loads(body)["details"], prev_hash=prev_hash,
                     hash=hashlib.sha256((prev_hash + body).encode()).hexdigest())
@@ -103,9 +107,7 @@ def verify_audit_chain(db: Session) -> dict:
     prev = "0" * 64
     n = 0
     for ev in db.scalars(select(AuditEvent).order_by(AuditEvent.id)):
-        body = json.dumps({"ts": ev.created_at.isoformat(), "actor": ev.actor, "action": ev.action,
-                           "entity_type": ev.entity_type, "entity_id": ev.entity_id, "details": ev.details},
-                          sort_keys=True, default=str)
+        body = _event_body(ev.created_at, ev.actor, ev.action, ev.entity_type, ev.entity_id, ev.details)
         if ev.prev_hash != prev or ev.hash != hashlib.sha256((prev + body).encode()).hexdigest():
             return {"valid": False, "events_checked": n, "first_invalid_id": ev.id}
         prev, n = ev.hash, n + 1

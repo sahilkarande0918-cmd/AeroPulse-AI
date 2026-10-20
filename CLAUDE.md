@@ -12,8 +12,8 @@ Context: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) · Status: [PROGRESS.md](PROGR
 5. Continue from PROGRESS.md "Next steps". Update PROGRESS.md before ending.
 
 ## Stack
-- `ml/` — Python 3.11, pandas, LightGBM, split-conformal intervals, SHAP (training). `python -m ml.train`
-- `backend/` — FastAPI + SQLAlchemy 2 + Alembic + OR-Tools CP-SAT. Run: `.venv/Scripts/python -m uvicorn app.main:app --app-dir backend`
+- `ml/` — Python 3.11, pandas, LightGBM, split-conformal intervals, SHAP (training). `python manage.py train`
+- `backend/` — FastAPI + SQLAlchemy 2 + Alembic + OR-Tools CP-SAT. Run: `python manage.py migrate | seed | serve`
 - Database: **Neon PostgreSQL** (hosted, `DATABASE_URL` in `.env`, sslmode=require) · local PostgreSQL via Docker for offline/on-prem · SQLite only for quick dev/tests. **No Supabase, ever.**
 - `frontend/` — React + TS + Vite + Tailwind v4 + TanStack Query + Recharts + lucide-react.
 - Docker Compose: postgres + backend + frontend (nginx).

@@ -55,11 +55,10 @@ class RulModel:
 
 
 @lru_cache(maxsize=1)
-def load_model(path: str | None = None) -> RulModel:
-    p = Path(path) if path else MODEL_PATH
-    if not p.exists():
-        raise FileNotFoundError(f"Model artifact not found at {p}. Run `python -m ml.train`.")
-    return RulModel(joblib.load(p))
+def load_model() -> RulModel:
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(f"Model artifact not found at {MODEL_PATH}. Run `python manage.py train`.")
+    return RulModel(joblib.load(MODEL_PATH))
 
 
 def conformal_quantile(residuals: np.ndarray, alpha: float) -> float:

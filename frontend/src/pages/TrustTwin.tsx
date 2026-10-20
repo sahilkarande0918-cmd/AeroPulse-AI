@@ -32,7 +32,6 @@ interface Params {
   unavailable_technicians: string[]; extra_inspection_aircraft: number[]
 }
 
-const MODEL_SENSORS = ['s2', 's3', 's4', 's7', 's9', 's11', 's12', 's14', 's15', 's17', 's20', 's21']
 const blank = (engine_id: number): Params => ({
   engine_id, seed: 7, advance_cycles: 0, dropout_sensors: [], dropout_last_n: 1, bias_sensor: null, bias_sigma: 0, noise_sigma: 0,
   stale_hours: 0, unavailable_parts: [], part_delay_days: 0, unavailable_technicians: [], extra_inspection_aircraft: [],
@@ -62,6 +61,8 @@ export default function TrustTwin() {
   const fleet = useQuery({ queryKey: ['aircraft', '', '', ''], queryFn: () => api.get<Page<AircraftRow>>('/aircraft?search=') })
   const parts = useQuery({ queryKey: ['parts'], queryFn: () => api.get<{ items: Part[] }>('/parts') })
   const techs = useQuery({ queryKey: ['technicians'], queryFn: () => api.get<{ items: Technician[] }>('/technicians') })
+  const model = useQuery({ queryKey: ['model'], queryFn: () => api.get<{ feature_schema: { sensors: Record<string, unknown> } }>('/model') })
+  const sensors = Object.keys(model.data?.feature_schema.sensors ?? {})
   const history = useQuery({ queryKey: ['scenarios'], queryFn: () => api.get<Page<{ id: number; created_at: string; engine: { serial: string }; baseline_state: TrustState; revised_state: TrustState; result_hash: string }>>('/trusttwin/scenarios?limit=8') })
   const [params, setParams] = useState<Params | null>(null)
   const [runId, setRunId] = useState<number | null>(null)
@@ -118,14 +119,14 @@ export default function TrustTwin() {
                     <Field label="Stale link (hours)"><input type="number" min={0} className={inputCls} value={p.stale_hours} onChange={(e) => set({ stale_hours: Math.max(0, +e.target.value) })} /></Field>
                     <Field label="Bias sensor">
                       <select className={inputCls} value={p.bias_sensor ?? ''} onChange={(e) => set({ bias_sensor: e.target.value || null })}>
-                        <option value="">none</option>{MODEL_SENSORS.map((s) => <option key={s}>{s}</option>)}
+                        <option value="">none</option>{sensors.map((s) => <option key={s}>{s}</option>)}
                       </select>
                     </Field>
                     <Field label="Bias (× step σ)"><input type="number" min={0} max={100} className={inputCls} value={p.bias_sigma} onChange={(e) => set({ bias_sigma: +e.target.value })} /></Field>
                     <Field label="Dropout: last N readings"><input type="number" min={1} max={50} className={inputCls} value={p.dropout_last_n} onChange={(e) => set({ dropout_last_n: Math.max(1, +e.target.value) })} /></Field>
                     <Field label="Part delay (days)"><input type="number" min={0} max={60} className={inputCls} value={p.part_delay_days} onChange={(e) => set({ part_delay_days: Math.max(0, +e.target.value) })} /></Field>
                   </div>
-                  <ChipGroup label="Missing sensors" items={MODEL_SENSORS} selected={p.dropout_sensors} onToggle={(s) => set({ dropout_sensors: toggle(p.dropout_sensors, s) })} />
+                  <ChipGroup label="Missing sensors" items={sensors} selected={p.dropout_sensors} onToggle={(s) => set({ dropout_sensors: toggle(p.dropout_sensors, s) })} />
                   <ChipGroup label="Parts unavailable" items={parts.data?.items.map((x) => x.part_number) ?? []} selected={p.unavailable_parts} onToggle={(s) => set({ unavailable_parts: toggle(p.unavailable_parts, s) })} />
                   <ChipGroup label="Technicians unavailable" items={techs.data?.items.map((x) => x.code) ?? []} selected={p.unavailable_technicians} onToggle={(s) => set({ unavailable_technicians: toggle(p.unavailable_technicians, s) })} />
                 </div>
