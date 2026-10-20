@@ -20,6 +20,11 @@ an aircraft."*
 | 12 | Close on **roadmap** (README) | Next: authorised non-classified data, independent validation, accredited security, supervised pilot. |
 
 ## Reset between rehearsals
+Easiest (local Docker demo and the hosted demo): sign in as `admin` → Settings & data → **Reset demo data** (deletes all
+records and re-seeds a fresh fleet with timestamps anchored to now; enabled by `DEMO_RESET_ENABLED=true`). Do this
+before judging on a deployment that has been running for days, otherwise TrustTwin rightly flags the replayed data as
+stale.
+
 Local dev: delete `backend/aeropulse_dev.db`, then `python manage.py migrate && python manage.py seed`.
 Docker (local database, recommended for live demos): `docker compose -f docker-compose.yml -f docker-compose.local.yml down -v` then `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` (≈ 30 s, clean seeded fleet).
 Neon (destructive — deletes all AeroPulse tables in that database): `cd backend && alembic downgrade base`, then

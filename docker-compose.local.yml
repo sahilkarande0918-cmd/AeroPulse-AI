@@ -17,6 +17,7 @@ services:
   backend:
     environment:
       DATABASE_URL: postgresql+psycopg://aeropulse:${POSTGRES_PASSWORD}@db:5432/aeropulse
+      DEMO_RESET_ENABLED: "true"
     depends_on:
       db: { condition: service_healthy }
 

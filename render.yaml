@@ -26,3 +26,5 @@ services:
         value: production
       - key: LLM_ENABLED
         value: "false"
+      - key: DEMO_RESET_ENABLED       # admin "Reset demo data" button: keeps the replayed fleet fresh for judging
+        value: "true"

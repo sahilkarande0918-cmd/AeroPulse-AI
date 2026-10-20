@@ -17,6 +17,7 @@ services:
       LLM_ENABLED: ${LLM_ENABLED:-false}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DEMO_RESET_ENABLED: ${DEMO_RESET_ENABLED:-false}
     restart: unless-stopped
 
   frontend:

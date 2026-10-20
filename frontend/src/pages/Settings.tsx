@@ -9,7 +9,7 @@ import { Button, Empty, ErrorState, Field, Loading, PageHeader, Panel, Table, Ta
 interface Status {
   app_env: string; mode: string; database_dialect: string; offline_capable: boolean; external_calls: string[]; llm_enabled: boolean
   data_sources: { name: string; type: string; kind: string; records?: number; batches?: number; last_import?: string | null }[]
-  predictions_stored: number; scenario_runs: number
+  predictions_stored: number; scenario_runs: number; demo_reset_enabled: boolean
 }
 interface Batch {
   id: number; created_at: string; source_type: string; source_name: string; filename: string; mapping_version: string; content_hash: string
@@ -52,6 +52,7 @@ export default function Settings() {
         <BatchHistory />
         <Thresholds />
         {can('admin') && <Users />}
+        {can('admin') && status.data?.demo_reset_enabled && <DemoReset />}
       </div>
     </>
   )
@@ -185,6 +186,34 @@ function Users() {
       )}
       {m.isError && <p role="alert" className="mt-2 text-xs text-crit">{(m.error as Error).message}</p>}
       <p className="mt-3 text-[11px] text-muted">Production path: replace local login with the organisation's OIDC/SSO and map its groups to these four roles (see docs/security.md).</p>
+    </Panel>
+  )
+}
+
+function DemoReset() {
+  const qc = useQueryClient()
+  const [armed, setArmed] = useState(false)
+  const m = useMutation({
+    mutationFn: () => api.post<{ note: string }>('/admin/reset-demo'),
+    onSuccess: () => { setArmed(false); setTimeout(() => qc.invalidateQueries(), 60_000) },
+  })
+  return (
+    <Panel title="Demo data" meta={<Tag tone="warn">demo deployments only</Tag>}>
+      <p className="text-[13px] text-muted">
+        Deletes all records (decisions, scenarios, audit log, imports) and re-seeds the synthetic fleet with sensor
+        timestamps anchored to now. Use before a demo: on a long-running deployment the replayed data otherwise ages and
+        TrustTwin correctly flags it as stale.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {!armed
+          ? <Button variant="danger" onClick={() => setArmed(true)}>Reset demo data…</Button>
+          : <>
+              <Button variant="danger" busy={m.isPending} onClick={() => m.mutate()}>Confirm: delete everything and re-seed</Button>
+              <Button variant="ghost" onClick={() => setArmed(false)}>Cancel</Button>
+            </>}
+      </div>
+      {m.data && <p role="status" className="mt-2 text-xs text-ok">{m.data.note}</p>}
+      {m.isError && <p role="alert" className="mt-2 text-xs text-crit">{(m.error as Error).message}</p>}
     </Panel>
   )
 }

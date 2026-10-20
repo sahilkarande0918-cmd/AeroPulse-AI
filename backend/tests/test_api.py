@@ -226,3 +226,22 @@ def test_alembic_migration_matches_models(tmp_path):
         tables = {r[0] for r in c.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
     eng.dispose()
     assert set(Base.metadata.tables) <= tables
+
+
+def test_demo_reset_is_admin_only_and_flag_gated(client, Session, monkeypatch):
+    from app.config import settings
+    h_adm, h_off = auth(client, "admin"), auth(client, "officer")
+    assert client.post("/api/admin/reset-demo", headers=h_adm).status_code == 403          # flag off by default
+    monkeypatch.setattr(settings, "demo_reset_enabled", True)
+    assert client.post("/api/admin/reset-demo", headers=h_off).status_code == 403          # officers cannot
+    rec = client.get("/api/recommendations?status=proposed", headers=h_off).json()["items"][0]
+    client.post("/api/decisions", headers=h_off, json={"target_type": "recommendation", "target_id": rec["id"],
+                                                         "decision": "reject", "reason": "test residue"})
+    import app.api.system as system_api
+    monkeypatch.setattr(system_api, "SessionLocal", Session)                                  # background task uses the test DB
+    r = client.post("/api/admin/reset-demo", headers=h_adm)
+    assert r.status_code == 202
+    with Session() as s:
+        assert s.scalar(select(Decision).limit(1)) is None
+        assert s.scalar(select(AuditEvent).where(AuditEvent.action == "demo.reset")) is not None
+        assert s.scalar(text("select count(*) from predictions")) == 20

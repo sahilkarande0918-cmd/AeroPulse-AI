@@ -128,6 +128,17 @@ def seed(db: Session) -> None:
     log.info("seed: synthetic demo fleet created")
 
 
+def reset_demo(db: Session, actor: str) -> None:
+    """Delete every row and re-seed a fresh synthetic fleet (timestamps anchored to now). Demo deployments only."""
+    from app.database import Base
+    for table in reversed(Base.metadata.sorted_tables):
+        db.execute(table.delete())
+    db.commit()
+    seed(db)
+    audit(db, actor, "demo.reset", "database", "demo", {"note": "All data deleted and synthetic demo fleet re-seeded."})
+    db.commit()
+
+
 if __name__ == "__main__":
     with SessionLocal() as s:
         seed(s)

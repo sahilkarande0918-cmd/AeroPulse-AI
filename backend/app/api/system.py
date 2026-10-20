@@ -2,13 +2,13 @@ import json
 from typing import Literal
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.config import DEFAULT_TRUST_THRESHOLDS, settings
-from app.database import get_db
+from app.database import SessionLocal, get_db
 from app.models import AppSetting, IngestionBatch, Prediction, ScenarioRun, SensorReading, User
 from app.security import ROLES, audit, require
 from app.services import copilot, fleet
@@ -38,6 +38,7 @@ def status(db: Session = Depends(get_db), _: User = Depends(require("read"))):
                          .group_by(IngestionBatch.source_type, IngestionBatch.source_name)).all()
     return {
         "app_env": settings.app_env, "mode": "production" if settings.is_production else "demo",
+        "demo_reset_enabled": settings.demo_reset_enabled,
         "database_dialect": db.get_bind().dialect.name,
         "offline_capable": True,
         "external_calls": ["Gemini API (only when LLM_ENABLED=true)"] if copilot.enabled() else [],
@@ -108,6 +109,20 @@ def put_thresholds(body: ThresholdsIn, db: Session = Depends(get_db), user: User
           {"before": before, "after": row.value, "reason": body.reason})
     db.commit()
     return {"thresholds": fleet.thresholds(db)}
+
+
+@router.post("/admin/reset-demo", status_code=202)
+def reset_demo(tasks: BackgroundTasks, user: User = Depends(require("admin"))):
+    """Wipe and re-seed the synthetic demo. Disabled unless DEMO_RESET_ENABLED=true; runs after the response returns."""
+    if not settings.demo_reset_enabled:
+        raise HTTPException(403, "Demo reset is disabled on this deployment (DEMO_RESET_ENABLED=false)")
+
+    def run(actor: str) -> None:
+        from app.seed import reset_demo as do_reset
+        with SessionLocal() as s:
+            do_reset(s, actor)
+    tasks.add_task(run, user.username)
+    return {"status": "started", "note": "Re-seeding takes up to about a minute; sign in again afterwards."}
 
 
 @router.get("/users")

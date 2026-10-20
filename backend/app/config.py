@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
     max_upload_bytes: int = 5_000_000
+    demo_reset_enabled: bool = False         # allow admins to wipe and re-seed the synthetic demo (demo hosting only)
     # Organisation SSO: AUTH_MODE=oidc validates IdP-signed bearer tokens instead of local passwords.
     auth_mode: str = "local"                 # local | oidc
     oidc_issuer: str = ""
