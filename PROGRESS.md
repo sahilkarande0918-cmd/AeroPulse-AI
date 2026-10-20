@@ -30,7 +30,6 @@ _Last updated: 2026-10-20 (session 1)_
 
 ## Active / pending
 - Connect to the owner's Neon instance once `DATABASE_URL` is in `.env` (never committed).
-- Push to GitHub (needs owner's git credentials on this machine).
 
 ## Known issues / blockers
 - Slow networks can make the first backend image build take a long time (Dockerfile retries pip downloads).
