@@ -46,6 +46,24 @@ TLS is enforced by `sslmode=require` in the URL. Only non-sensitive demonstratio
 
 ## Free-tier hosting
 
+**Live (verified 2026-10-21):** app **https://aero-pulse-ai-kohl.vercel.app** · API https://aeropulse-api-o93e.onrender.com
+(`/health`, `/api/health`, OpenAPI at `/docs`). Demo users admin / officer / technician / analyst; the public password is
+`PROD_DEMO_PASSWORD` in the owner's `.env` (never committed). Verified live: `scripts/smoke.py` and all 4 Playwright tests
+against the Vercel URL, UptimeRobot monitor on `/health` (GET or HEAD).
+
+Measured through Vercel from India (network round trip to Ohio ≈ 0.4 s included): page data 0.4–0.9 s, TrustTwin
+scenario 1.4–1.6 s, policy comparison 1.2 s, CP-SAT plan 0.4 s, login 2.4 s. Render deploys take 60–90 s; the in-region
+demo reset takes ~20 s.
+
+Operations:
+* Vercel redeploys automatically on every push to `main` (project `aero-pulse-ai`, root directory `frontend`).
+* The Render service was created from the public repo URL with auto-deploy off: redeploy from the Render dashboard
+  ("Manual Deploy") or `POST /v1/services/<id>/deploys` with the Render API key.
+* Before judging: sign in as admin → Settings → **Reset demo data** (fresh timestamps, clean decisions/audit).
+* Render's 750 free instance-hours are shared by all free services in the workspace; a 24/7 monitor uses ~720 h, so
+  other always-on free services in the same workspace can exhaust the pool (Render then suspends free services until
+  the month resets — no charge).
+
 | Piece | Service (free plan) | Config |
 |---|---|---|
 | Frontend (static SPA) | Vercel | `frontend/vercel.json` — builds Vite, rewrites `/api/*` to Render (same origin for the browser), CSP + security headers |
@@ -53,7 +71,8 @@ TLS is enforced by `sslmode=require` in the URL. Only non-sensitive demonstratio
 | Database | Neon Free, AWS us-east-2 | pooled connection string with `sslmode=require` |
 | Uptime | UptimeRobot Free, 5-minute HTTP check | `GET https://<render-service>.onrender.com/health` |
 
-Render Free sleeps after 15 minutes without traffic; the 5-minute monitor keeps it awake (one service ≈ 730 h/month,
+Render Free sleeps after 15 minutes without traffic; the 5-minute monitor (UptimeRobot probes with `HEAD`, which
+`/health` accepts) keeps it awake (one service ≈ 730 h/month,
 inside the 750 free instance-hours). `/health` deliberately touches neither the database nor the model, so the pings do
 not keep the Neon compute awake. Paid plans are never enabled without the owner's approval.
 

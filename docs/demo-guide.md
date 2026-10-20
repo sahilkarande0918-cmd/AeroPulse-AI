@@ -1,5 +1,8 @@
 # SIH demo guide (8–10 minutes)
 
+Hosted: https://aero-pulse-ai-kohl.vercel.app (password = `PROD_DEMO_PASSWORD` in the owner's `.env`). Local, lag-free:
+`docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` → http://localhost:8080 (password = `DEMO_PASSWORD`).
+
 Story arc: **Problem → Data → Prediction → Confidence → Maintenance action → Resource disruption → Revised plan →
 Evaluation → Human approval.** Sign in as `officer`. Keep one line ready: *"Advisory only — the model never authorises
 an aircraft."*

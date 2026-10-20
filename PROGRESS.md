@@ -48,14 +48,17 @@ _Last updated: 2026-10-21 (session 1)_
 - Vitest **11 passed** · ESLint 0 · build OK · secret scan OK · npm audit 0 · pip-audit 0
 - Playwright **4 passed** + `scripts/smoke.py` passed on the production images capped at 512 MB / 0.1 CPU
 
+- **Deployed and verified live (2026-10-21)**: Vercel https://aero-pulse-ai-kohl.vercel.app (owner-created project
+  `aero-pulse-ai`, root `frontend`, auto-deploys from main) → Render Free `aeropulse-api` (srv-dbbsksfavr4c73dfp0ig,
+  Ohio, https://aeropulse-api-o93e.onrender.com, auto-deploy off) → Neon (reset + re-seeded with PROD_DEMO_PASSWORD) ·
+  UptimeRobot monitor 804355902, 5 min, `/health` (HEAD fixed). Live smoke + 4 Playwright tests pass.
+
 ## Active / pending
-- Deploy: Neon reset (owner approved) → Render service → Vercel → UptimeRobot; needs RENDER_API_KEY, VERCEL_TOKEN,
-  UPTIMEROBOT_API_KEY in `.env` (owner adding).
+- None. Owner action before judging: Settings → Reset demo data.
 
 ## Known issues / blockers
 - Slow local network makes first Docker builds slow (pip retries configured).
 - Render Free: 0.1 CPU → login ~3 s (bcrypt), scenarios 1–2 s; sleeps after 15 min idle without the uptime monitor.
 
 ## Next steps
-1. Deploy and verify live (smoke + Playwright with `E2E_BASE_URL`), record URLs here.
-2. Possible improvements: multi-condition production model; WORM audit anchoring; real IdP integration.
+1. Possible improvements: multi-condition production model; WORM audit anchoring; real IdP integration.

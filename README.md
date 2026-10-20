@@ -155,6 +155,9 @@ Captured by the Playwright suite against the running app (`E2E_SCREENSHOTS=../do
 
 ## Hosted demo (free tiers)
 
+**Live:** https://aero-pulse-ai-kohl.vercel.app (API: https://aeropulse-api-o93e.onrender.com/docs). Sign in as
+`officer`, `admin`, `technician` or `analyst`; the password is shared separately by the project owner.
+
 Frontend on **Vercel**, FastAPI on **Render Free** (Docker, Ohio), database on **Neon** (us-east-2), kept warm by an
 **UptimeRobot** 5-minute ping of `GET /health` (which never touches the database). Blueprint: `render.yaml`; Vercel
 config: `frontend/vercel.json` (rewrites `/api/*` to Render). Measured resource use and latency on Render-equivalent
