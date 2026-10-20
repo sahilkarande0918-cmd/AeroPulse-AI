@@ -104,7 +104,7 @@ def test_trusttwin_scenario_end_to_end(client):  # demo flow: degradation -> par
     base = client.post("/api/trusttwin/scenarios", headers=h, json={"engine_id": eng["id"]}).json()
     assert base["result"]["baseline"]["assessment"]["state"] == "VALID"
     assert base["result"]["baseline"]["recommendation"]["task_type"] == "replacement"
-    task = f"REV-E{eng['id']}"
+    task = f"TT-E{eng['id']}"
     b_start = next(a["start"] for a in base["result"]["revised"]["plan"]["assignments"] if a["task"] == task)
     part = client.post("/api/trusttwin/scenarios", headers=h, json={"engine_id": eng["id"], "unavailable_parts": ["APX-HPT-MOD-KIT"]}).json()
     moved = next(a for a in part["result"]["revised"]["plan"]["assignments"] if a["task"] == task)

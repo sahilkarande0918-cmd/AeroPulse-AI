@@ -124,12 +124,18 @@ def _diff(base: dict, rev: dict) -> list[dict]:
     out = []
     for t in sorted(set(b) | set(r) | set(ru)):
         if t in b and t in r:
-            if b[t]["start"] != r[t]["start"] or b[t]["technician"] != r[t]["technician"]:
+            if b[t]["title"] != r[t]["title"]:
+                out.append({"task": t, "change": "action changed", "from": b[t]["start"], "to": r[t]["start"],
+                            "tech_from": b[t]["technician"], "tech_to": r[t]["technician"],
+                            "reason": f"{b[t]['title']} -> {r[t]['title']}"})
+            elif b[t]["start"] != r[t]["start"] or b[t]["technician"] != r[t]["technician"]:
                 out.append({"task": t, "change": "moved", "from": b[t]["start"], "to": r[t]["start"],
                             "tech_from": b[t]["technician"], "tech_to": r[t]["technician"]})
         elif t in b and t in ru:
-            out.append({"task": t, "change": "now unscheduled", "reason": ru[t]})
-        elif t in r and t not in b:
+            out.append({"task": t, "change": "now unscheduled", "from": b[t]["start"], "reason": ru[t]})
+        elif t in b:
+            out.append({"task": t, "change": "removed", "from": b[t]["start"], "reason": "no longer recommended"})
+        elif t in r:
             out.append({"task": t, "change": "added", "to": r[t]["start"], "tech_to": r[t]["technician"]})
     return out
 
@@ -146,8 +152,8 @@ def run(db: Session, p: ScenarioParams, user_id: int | None, now=None) -> Scenar
     pert, eval_now, notes = perturb(readings, engine, p, now)
     rev_a = trust.assess(pert, eval_now, model, th)
 
-    base_task = _rec_task(engine, base_a, th, "BASE")
-    rev_task = _rec_task(engine, rev_a, th, "REV")
+    base_task = _rec_task(engine, base_a, th, "TT")   # same id in both plans so the diff can compare them
+    rev_task = _rec_task(engine, rev_a, th, "TT")
     extra = []
     for ac_id in p.extra_inspection_aircraft:
         ac = db.get(Aircraft, ac_id)
@@ -199,7 +205,7 @@ def run(db: Session, p: ScenarioParams, user_id: int | None, now=None) -> Scenar
         elif d["change"] == "now unscheduled":
             explain.append(f"{d['task']} can no longer be scheduled: {d['reason']}")
     for u in rev_plan["unscheduled"]:
-        if u["task"].startswith(("REV", "INSP")):
+        if u["task"].startswith(("TT-", "INSP")) and u["task"] not in {d["task"] for d in diff}:
             explain.append(f"{u['task']} not schedulable: {u['reason']}")
     kb, kr = base_plan["kpis"], rev_plan["kpis"]
     explain.append(f"Plan KPIs: late tasks {kb['late_tasks']} -> {kr['late_tasks']}, unscheduled "

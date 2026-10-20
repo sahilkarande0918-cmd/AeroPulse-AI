@@ -107,7 +107,8 @@ def seed(db: Session) -> None:
             ("AP-104", "repair", "Bleed valve actuator replaced", 60), ("AP-105", "inspection", "Fuel nozzle spray pattern marginal", 5),
             ("AP-106", "defect", "Hydraulic seep at actuator", 2), ("AP-107", "servicing", "Data acquisition unit reset", 6),
             ("AP-108", "inspection", "Borescope inspection, minor coating loss HPT stage 1", 90),
-            ("AP-110", "replacement", "Engine #1 replaced (newly installed engine)", 7), ("AP-110", "inspection", "Harness chafing suspected", 1), ("AP-109", "servicing", "Starter air valve sluggish; monitor", 4)]
+            ("AP-110", "replacement", "Engine #1 replaced (newly installed engine)", 7),
+            ("AP-110", "inspection", "Harness chafing suspected", 1), ("AP-109", "servicing", "Starter air valve sluggish; monitor", 4)]
     for n, (tail, rtype, desc, days_ago) in enumerate(recs, start=1):
         db.add(MaintenanceRecord(aircraft_id=t[tail].id, performed_at=now - timedelta(days=days_ago), record_type=rtype,
                                  description=desc, performed_by="Synthetic record", source_system="SYNTH-TECHLOG",

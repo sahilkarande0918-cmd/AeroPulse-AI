@@ -30,7 +30,8 @@ def schedule_out(s: Schedule, full: bool = True) -> dict:
            "kpis": s.result.get("kpis"), "objective": s.result.get("objective"), "solver_status": s.result.get("status")}
     if full:
         out.update(assignments=s.result["assignments"], unscheduled=s.result["unscheduled"],
-                   technicians=[t["id"] for t in s.result.get("problem", {}).get("techs", [])])
+                   technicians=[t["id"] for t in s.result.get("problem", {}).get("techs", [])],
+                   blocked={t["id"]: t["blocked"] for t in s.result.get("problem", {}).get("techs", [])})
     return out
 
 

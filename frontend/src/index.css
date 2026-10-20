@@ -1,0 +1,56 @@
+/* Hallmark · scope: app console (custom theme, owner palette) · tone: technical/austere
+ * paper: #0E1826 (dark) · accent: #4AB5D1 technical blue (cool) · display/body: IBM Plex Sans · data: IBM Plex Mono
+ * All colours and fonts below are the locked token set; components reference tokens only.
+ */
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@theme {
+  --color-canvas: #0E1826;
+  --color-surface: #172536;
+  --color-raised: #223449;
+  --color-line: #2B3F57;
+  --color-line-strong: #3A5270;
+  --color-ink: #E8EFF5;
+  --color-muted: #9EADBC;
+  --color-tech: #4AB5D1;
+  --color-ok: #6ABFA3;
+  --color-warn: #E7AF58;
+  --color-crit: #D97777;
+  --color-on-accent: #0E1826;
+
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+html, body { overflow-x: clip; }
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-style: normal; margin: 0; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 2px solid var(--color-tech); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+}
+
+/* Recharts text uses the token palette */
+.recharts-text { fill: var(--color-muted); font-family: var(--font-mono); font-size: 11px; }
+.recharts-cartesian-grid line { stroke: var(--color-line); }
+.recharts-default-tooltip { background: var(--color-raised) !important; border: 1px solid var(--color-line-strong) !important; }
+.recharts-tooltip-label, .recharts-tooltip-item { color: var(--color-ink) !important; font-size: 12px; }
