@@ -130,9 +130,15 @@ def seed(db: Session) -> None:
 
 def reset_demo(db: Session, actor: str) -> None:
     """Delete every row and re-seed a fresh synthetic fleet (timestamps anchored to now). Demo deployments only."""
+    from sqlalchemy import text
+
     from app.database import Base
-    for table in reversed(Base.metadata.sorted_tables):
-        db.execute(table.delete())
+    tables = list(reversed(Base.metadata.sorted_tables))
+    if db.get_bind().dialect.name == "postgresql":   # restart ids so links like /fleet/1 survive a reset
+        db.execute(text("TRUNCATE " + ", ".join(t.name for t in tables) + " RESTART IDENTITY CASCADE"))
+    else:                                              # SQLite reuses rowids once a table is empty
+        for table in tables:
+            db.execute(table.delete())
     db.commit()
     seed(db)
     audit(db, actor, "demo.reset", "database", "demo", {"note": "All data deleted and synthetic demo fleet re-seeded."})
