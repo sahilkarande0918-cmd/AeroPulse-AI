@@ -175,6 +175,8 @@ npm --prefix frontend run build            # tsc + production build
 npm --prefix frontend run check:secrets    # fails if any server secret appears in the bundle
 ```
 
+End-to-end smoke against a running stack: `python scripts/smoke.py http://localhost:8080` (Docker) or `http://localhost:5173` (dev).
+
 Mapping of the 18 mandatory test scenarios to test functions: [docs/evaluation.md#test-coverage](docs/evaluation.md#test-coverage).
 
 ## The nine pages
