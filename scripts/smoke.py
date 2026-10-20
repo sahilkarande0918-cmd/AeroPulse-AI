@@ -19,7 +19,7 @@ PW = os.environ.get("DEMO_PASSWORD") or next(
 
 
 def call(method, path, body=None, token=None, expect=200):
-    req = urllib.request.Request(BASE + path,  # noqa: S310 (scheme checked above) method=method, data=json.dumps(body).encode() if body is not None else None,
+    req = urllib.request.Request(BASE + path, method=method, data=json.dumps(body).encode() if body is not None else None,  # noqa: S310
                                  headers={"Content-Type": "application/json", **({"Authorization": f"Bearer {token}"} if token else {})})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:  # noqa: S310
