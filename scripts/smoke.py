@@ -11,16 +11,18 @@ import urllib.request
 from pathlib import Path
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8080").rstrip("/")
+if not BASE.startswith(("http://", "https://")):
+    sys.exit("BASE_URL must be http(s)")
 PW = os.environ.get("DEMO_PASSWORD") or next(
     (ln.split("=", 1)[1].strip() for ln in (Path(__file__).parents[1] / ".env").read_text().splitlines()
      if ln.startswith("DEMO_PASSWORD=")), "")
 
 
 def call(method, path, body=None, token=None, expect=200):
-    req = urllib.request.Request(BASE + path, method=method, data=json.dumps(body).encode() if body is not None else None,
+    req = urllib.request.Request(BASE + path,  # noqa: S310 (scheme checked above) method=method, data=json.dumps(body).encode() if body is not None else None,
                                  headers={"Content-Type": "application/json", **({"Authorization": f"Bearer {token}"} if token else {})})
     try:
-        with urllib.request.urlopen(req, timeout=60) as r:  # noqa: S310 (operator-supplied URL)
+        with urllib.request.urlopen(req, timeout=60) as r:  # noqa: S310
             status, data = r.status, json.loads(r.read() or b"null")
     except urllib.error.HTTPError as e:
         status, data = e.code, json.loads(e.read() or b"null")
