@@ -1,0 +1,24 @@
+# Adds a local PostgreSQL and points the backend at it, overriding any DATABASE_URL in .env.
+#     docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aeropulse
+      POSTGRES_DB: aeropulse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aeropulse -d aeropulse"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
+    environment:
+      DATABASE_URL: postgresql+psycopg://aeropulse:${POSTGRES_PASSWORD}@db:5432/aeropulse
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pgdata:

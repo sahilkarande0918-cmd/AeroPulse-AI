@@ -24,14 +24,16 @@ _Last updated: 2026-10-21 (session 1)_
 - `npm test` (Vitest): **8 passed** · `npm run build`: OK · `check:secrets`: OK (and proven to catch a planted secret)
 - `npm run lint`: 0 errors (6 fast-refresh warnings, dev-only)
 
-- **Docker** (`docker compose --profile local-db up -d --build`): db + backend + frontend healthy; migrate + seed on
+- **Docker** (`docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build`): db + backend + frontend healthy; migrate + seed on
   start; `scripts/smoke.py http://localhost:8080` **passed**; CSP/X-Frame headers present; decisions persist across a
   backend container restart on PostgreSQL.
 
 - **Neon connected and verified** (2026-10-21): `DATABASE_URL` in `.env` (git-ignored), PostgreSQL 18.6 in AWS
   us-east-2 via the pooled endpoint with TLS. Migrate + seed done (idempotent); smoke passes for dev server and Docker
   stack on Neon; persistence across restart and audit chain verified. N+1 lazy loading fixed (D18).
-  Docker backend currently points at Neon (local `pgdata` volume kept for `--profile local-db`).
+- **Live-demo mode** (2026-10-21): `docker-compose.local.yml` forces the bundled PostgreSQL even with a Neon URL in
+  `.env`; API warm-up at startup. Measured: page data 7–39 ms, browser render 12–260 ms, TrustTwin scenario click→result
+  335 ms. **Currently running** in this mode at http://localhost:8080 with a freshly seeded database.
 
 ## Active / pending
 - Neon now holds a few smoke-test scenario runs/decisions; reset steps in docs/demo-guide.md if a clean demo is wanted.

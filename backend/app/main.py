@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,8 +7,25 @@ from fastapi.responses import JSONResponse
 
 from app.api import auth, fleet, ingestion, maintenance, parts, reports, system, trusttwin
 from app.config import log, settings
+from app.services import simulator
+from app.services import trusttwin as trusttwin_service
+from ml.inference import load_model
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Load the model and precompute hold-out predictions once, so no user request pays for it.
+    try:
+        load_model()
+        simulator.trajectory_table()
+        trusttwin_service.holdout_raw()
+    except FileNotFoundError as e:
+        log.error("warm-up skipped: %s", e)
+    yield
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="AeroPulse AI API",
     version="1.0.0",
     description="Advisory predictive-maintenance decision support (SIH26249 prototype). "

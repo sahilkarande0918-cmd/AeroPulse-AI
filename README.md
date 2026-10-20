@@ -144,8 +144,8 @@ API docs (OpenAPI): http://localhost:8000/docs.
 ## Docker
 
 ```bash
-# Offline / on-premise: bundled PostgreSQL 16 (no internet needed at runtime)
-docker compose --profile local-db up -d --build
+# Offline / on-premise / live demos: bundled PostgreSQL 16, no network latency (ignores DATABASE_URL)
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 # Hosted Neon PostgreSQL: put your Neon DATABASE_URL in .env, then
 docker compose up -d --build
 ```

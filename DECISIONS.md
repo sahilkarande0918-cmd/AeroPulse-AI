@@ -20,3 +20,4 @@
 | D16 | Drift = standardised mean shift + out-of-range share; no Evidently | Two statistics answer the question; avoids a heavy dependency. |
 | D17 | Optional Gemini explainer, off by default | Core platform fully local; LLM only rephrases stored facts and cannot act. |
 | D18 | Relationships use `lazy="selectin"`; reports prefetch in bulk | Verified on Neon: ~280 ms per round trip made per-row lazy loads cost 5–9 s per page. Batched loading fixes every caller at the model, not per endpoint. |
+| D19 | Local mode = `docker-compose.local.yml` override (replaces the `local-db` profile); API warm-up at startup | A profile could not stop a Neon `DATABASE_URL` in `.env` from winning, so a "local" demo silently paid ~280 ms per query. The override pins the bundled database. Warm-up moves model load and hold-out predictions out of the first request. |

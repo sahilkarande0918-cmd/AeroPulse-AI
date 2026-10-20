@@ -21,7 +21,7 @@ an aircraft."*
 
 ## Reset between rehearsals
 Local dev: delete `backend/aeropulse_dev.db`, then `python manage.py migrate && python manage.py seed`.
-Docker: `docker compose --profile local-db down -v && docker compose --profile local-db up -d`.
+Docker (local database, recommended for live demos): `docker compose -f docker-compose.yml -f docker-compose.local.yml down -v` then `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` (≈ 30 s, clean seeded fleet).
 Neon (destructive — deletes all AeroPulse tables in that database): `cd backend && alembic downgrade base`, then
 `python manage.py migrate && python manage.py seed`.
 

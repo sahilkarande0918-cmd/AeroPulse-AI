@@ -5,7 +5,7 @@
 | Mode | Database | Command | Internet at runtime |
 |---|---|---|---|
 | Local development | SQLite file (`backend/aeropulse_dev.db`) or any PostgreSQL | `python manage.py migrate && python manage.py seed && python manage.py serve` + `npm --prefix frontend run dev` | No |
-| Offline / on-premise | PostgreSQL 16 container | `docker compose --profile local-db up -d --build` | **No** |
+| Offline / on-premise / **live demos** | PostgreSQL 16 container | `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build` | **No** |
 | Hosted demo | **Neon PostgreSQL** | set `DATABASE_URL` in `.env`, `docker compose up -d --build` | Yes (to Neon only) |
 
 The same Alembic migrations run on all three. Nothing in the core platform calls an external service; the optional
@@ -17,7 +17,7 @@ FastAPI's built-in OpenTelemetry hooks export nothing unless an OTLP exporter is
 ```
 JWT_SECRET_KEY=<python -c "import secrets;print(secrets.token_urlsafe(48))">
 DEMO_PASSWORD=<password for the 4 seeded demo users>
-POSTGRES_PASSWORD=<only for the local-db profile>
+POSTGRES_PASSWORD=<only for docker-compose.local.yml>
 DATABASE_URL=<only for Neon>
 ```
 
@@ -28,7 +28,7 @@ The backend container runs with `APP_ENV=production` and refuses to start withou
 1. Create a Neon project and database (e.g. `aeropulse`); copy the connection string from *Connection details*.
 2. Put it in `.env` as `DATABASE_URL=postgresql://USER:PASSWORD@ep-…neon.tech/aeropulse?sslmode=require`.
    `postgres://` and `postgresql://` are both accepted and routed through psycopg 3.
-3. `docker compose up -d --build` (no `local-db` profile) — or locally `python manage.py migrate && python manage.py seed`.
+3. `docker compose up -d --build` (base file only) — or locally `python manage.py migrate && python manage.py seed`.
 
 **Verified 2026-10-21** against the project's Neon database (PostgreSQL 18.6, AWS us-east-2, pooled endpoint with
 `sslmode=require&channel_binding=require`; client TLS confirmed): migration and seed succeed and are idempotent on re-run,
@@ -37,16 +37,22 @@ dev server and for the Docker stack using Neon, the audit chain verifies, and da
 
 **Latency: put the backend next to the database.** Each query to us-east-2 from India costs ~280 ms, so a page that
 needs 8–18 queries takes 2–6 s (relationships are batch-loaded with `lazy="selectin"`, so the query count no longer grows
-with fleet size). For demos, either run the local-db profile, host the backend in the same region as Neon, or create the
+with fleet size). For demos, either use the local database (below), host the backend in the same region as Neon, or create the
 Neon project in the region nearest to where the backend runs.
 
 Engine settings tuned for Neon (`backend/app/database.py`): `pool_pre_ping` + `pool_recycle=300` survive compute
 auto-suspend; `prepare_threshold=None` keeps the PgBouncer pooler endpoint (`-pooler` host, transaction mode) safe;
 TLS is enforced by `sslmode=require` in the URL. Only non-sensitive demonstration data should go to a hosted service.
 
-## Local PostgreSQL (offline / on-prem)
+## Local PostgreSQL (offline / on-prem / live demos)
 
-`docker compose --profile local-db up -d --build` starts `db` (postgres:16-alpine, volume `pgdata`), `backend`
+`docker-compose.local.yml` adds the database and **overrides** `DATABASE_URL`, so this mode stays local even when `.env`
+holds a Neon URL. Measured on the demo laptop (2026-10-21): every page's API data in 7–39 ms, pages rendered in the
+browser in 12–260 ms, a disrupted TrustTwin scenario from click to results in 335 ms, policy comparison in ~70 ms. The
+API warms the model and hold-out predictions at startup, so the first click is as fast as the rest.
+
+
+`docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build` starts `db` (postgres:16-alpine, volume `pgdata`), `backend`
 (migrates, seeds once, serves on the internal network) and `frontend` (nginx on http://localhost:8080 serving the built
 SPA and proxying `/api`). Fonts, scripts and the model are all inside the images.
 

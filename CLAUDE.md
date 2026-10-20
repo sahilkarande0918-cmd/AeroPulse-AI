@@ -16,7 +16,7 @@ Context: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) · Status: [PROGRESS.md](PROGR
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic + OR-Tools CP-SAT. Run: `python manage.py migrate | seed | serve`
 - Database: **Neon PostgreSQL** (hosted, `DATABASE_URL` in `.env`, sslmode=require) · local PostgreSQL via Docker for offline/on-prem · SQLite only for quick dev/tests. **No Supabase, ever.**
 - `frontend/` — React + TS + Vite + Tailwind v4 + TanStack Query + Recharts + lucide-react.
-- Docker Compose: postgres + backend + frontend (nginx).
+- Docker: `docker compose up -d` = external DB (Neon) · `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d` = bundled PostgreSQL (offline/demos).
 
 ## Rules
 - **Ponytail (full) is mandatory**: reuse > stdlib > installed deps > minimal code. No speculative abstractions. Never skip required features, validation or security.

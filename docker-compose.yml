@@ -1,27 +1,15 @@
-# Offline / on-premise (local PostgreSQL):   docker compose --profile local-db up -d --build
-# Hosted Neon PostgreSQL: set DATABASE_URL in .env, then  docker compose up -d --build
+# Hosted database (Neon or any PostgreSQL): set DATABASE_URL in .env, then
+#     docker compose up -d --build
+# Local PostgreSQL (offline / on-premise / live demos: no network latency), ignores DATABASE_URL:
+#     docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 # Required in .env: JWT_SECRET_KEY, DEMO_PASSWORD (and POSTGRES_PASSWORD for the local database).
 name: aeropulse
 
 services:
-  db:
-    profiles: ["local-db"]
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: aeropulse
-      POSTGRES_DB: aeropulse
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-    volumes: [pgdata:/var/lib/postgresql/data]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aeropulse -d aeropulse"]
-      interval: 5s
-      retries: 20
-    restart: unless-stopped
-
   backend:
     build: { context: ., dockerfile: backend/Dockerfile }
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://aeropulse:${POSTGRES_PASSWORD:-unset}@db:5432/aeropulse}
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env, or use docker-compose.local.yml}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
       APP_ENV: ${APP_ENV_DOCKER:-production}
@@ -29,8 +17,6 @@ services:
       LLM_ENABLED: ${LLM_ENABLED:-false}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    depends_on:
-      db: { condition: service_healthy, required: false }
     restart: unless-stopped
 
   frontend:
@@ -39,6 +25,3 @@ services:
     depends_on:
       backend: { condition: service_healthy }
     restart: unless-stopped
-
-volumes:
-  pgdata:
