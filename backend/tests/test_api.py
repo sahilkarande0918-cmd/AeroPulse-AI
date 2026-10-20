@@ -29,6 +29,7 @@ def test_liveness_needs_no_database(client):
         yield
     app.dependency_overrides[get_db] = broken
     assert client.get("/health").json() == {"status": "ok"}
+    assert client.head("/health").status_code == 200          # uptime monitors probe with HEAD
 
 
 def test_login_rejects_bad_password_and_rate_limits(client):

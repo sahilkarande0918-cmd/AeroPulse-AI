@@ -59,7 +59,7 @@ async def unhandled(_: Request, exc: Exception):
     return _error(500, "internal_error", "Internal server error")
 
 
-@app.get("/health", include_in_schema=False)
+@app.api_route("/health", methods=["GET", "HEAD"], include_in_schema=False)   # UptimeRobot probes with HEAD
 def liveness():
     """Uptime-monitor ping: no database or model access, so pings never wake or bill the database."""
     return {"status": "ok"}
